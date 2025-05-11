@@ -7,7 +7,6 @@ import HeroSection from '@/components/HeroSection.vue'
   <main>
     <HeroSection />
     <div class="content-section">
-      <TheWelcome />
     </div>
   </main>
 </template>
