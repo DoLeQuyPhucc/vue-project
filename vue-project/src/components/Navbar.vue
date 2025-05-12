@@ -1,41 +1,56 @@
 <template>
   <header
-    class="fixed top-0 left-0 right-0 z-50 flex items-center px-6 py-3 transition-all duration-300"
+    class="fixed top-0 left-0 right-0 z-50 flex flex-col md:flex-row items-center px-4 md:px-6 py-3 transition-all duration-300"
     :class="scrolled ? 'bg-zinc-900/95 shadow-md' : 'bg-gradient-to-b from-black/80 to-transparent'"
   >
-    <div class="flex items-center mr-6">
-      <router-link to="/" class="flex-shrink-0 mr-8">
-        <img :src="logoImage" alt="LOPHIM" class="h-12" />
+    <!-- Logo and search container (full width on mobile, flex on desktop) -->
+    <div class="flex w-full md:w-auto items-center justify-between md:justify-start mb-4 md:mb-0">
+      <!-- Logo (smaller on mobile) -->
+      <router-link to="/" class="flex-shrink-0 md:mr-8">
+        <img :src="logoImage" alt="LOPHIM" class="h-8 md:h-12" />
       </router-link>
 
-      <div class="relative">
-        <input
-          type="text"
-          placeholder="Tìm kiếm phim, diễn viên"
-          class="bg-zinc-800/80 text-white border border-zinc-700 rounded-full px-4 py-2 pl-11 w-64 focus:outline-none focus:border-red-500"
-        />
-        <div
-          class="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 pointer-events-none"
+      <!-- Mobile menu toggle button -->
+      <button 
+        @click="mobileMenuOpen = !mobileMenuOpen" 
+        class="md:hidden flex items-center justify-center w-10 h-10 text-white hover:text-red-500"
+      >
+        <font-awesome-icon :icon="mobileMenuOpen ? 'times' : 'bars'" />
+      </button>
+    </div>
+
+    <!-- Search bar (full width on mobile) -->
+    <div class="relative w-full md:w-auto md:mr-6 mb-4 md:mb-0">
+      <input
+        type="text"
+        placeholder="Tìm kiếm phim, diễn viên"
+        class="w-full md:w-64 bg-zinc-800/80 text-white border border-zinc-700 rounded-full px-4 py-2 pl-11 focus:outline-none focus:border-red-500"
+      />
+      <div
+        class="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 pointer-events-none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            ></path>
-          </svg>
-        </div>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          ></path>
+        </svg>
       </div>
     </div>
 
-    <div class="flex items-center space-x-6 flex-1">
+    <!-- Navigation links -->
+    <div 
+      class="w-full md:flex-1 flex flex-col md:flex-row md:items-center md:space-x-6 space-y-3 md:space-y-0 overflow-hidden transition-all duration-300"
+      :class="mobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 md:max-h-screen opacity-0 md:opacity-100'"
+    >
       <router-link to="/" class="text-white hover:text-red-500 font-medium">Chủ Đề</router-link>
 
       <div class="relative group">
@@ -50,6 +65,7 @@
             ></path>
           </svg>
         </div>
+        <!-- Dropdown content could go here -->
       </div>
 
       <router-link to="/phim-le" class="text-white hover:text-red-500 font-medium"
@@ -71,6 +87,7 @@
             ></path>
           </svg>
         </div>
+        <!-- Dropdown content could go here -->
       </div>
 
       <router-link to="/dien-vien" class="text-white hover:text-red-500 font-medium"
@@ -81,7 +98,8 @@
       >
     </div>
 
-    <div class="flex items-center gap-4">
+    <!-- Auth buttons -->
+    <div class="hidden md:flex items-center gap-4 ml-4">
       <template v-if="auth.isLoggedIn">
         <span class="text-sm text-zinc-300">👤 {{ auth.user.email }}</span>
         <button
@@ -103,10 +121,17 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, onUnmounted } from 'vue'
 import logoImage from '@/assets/logoBase.jpg'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+// Add icons to the library
+library.add(faBars, faTimes)
 
 const auth = useAuthStore()
 const router = useRouter()
 const scrolled = ref(false)
+const mobileMenuOpen = ref(false)
 
 const handleScroll = () => {
   scrolled.value = window.scrollY > 50

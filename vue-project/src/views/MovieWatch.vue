@@ -1,60 +1,71 @@
 <template>
-  <div class="bg-zinc-900 min-h-screen text-white pt-16">
+  <div class="bg-zinc-900 min-h-screen text-white pt-16 md:pt-20">
     <!-- Header with movie title and back button -->
     <div class="relative z-10">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex items-center gap-4">
+      <div class="container mx-auto px-4 py-2 md:py-4">
+        <div class="flex items-center gap-2 md:gap-4">
           <router-link
             :to="'/'"
-            class="flex items-center justify-center w-10 h-10 rounded-full bg-zinc-800/70 hover:bg-zinc-700/70 text-white transition-colors"
+            class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-zinc-800/70 hover:bg-zinc-700/70 text-white transition-colors"
           >
-            <font-awesome-icon :icon="['fas', 'arrow-left']" />
+            <font-awesome-icon :icon="['fas', 'arrow-left']" class="text-sm md:text-base" />
           </router-link>
-          <h1 class="text-xl font-medium text-white">Xem phim {{ movie.name || 'Đang tải...' }}</h1>
+          <h1 class="text-base md:text-xl font-medium text-white truncate">
+            Xem phim {{ movie.name || 'Đang tải...' }}
+          </h1>
         </div>
       </div>
     </div>
 
-    <div class="container mx-auto px-4 pb-12">
+    <div class="container mx-auto px-4 pb-8 md:pb-12">
       <!-- Loading state -->
       <div v-if="loading" class="w-full">
         <div
-          class="bg-zinc-800 aspect-video w-full mb-6 rounded overflow-hidden animate-pulse"
+          class="bg-zinc-800 aspect-video w-full mb-4 md:mb-6 rounded overflow-hidden animate-pulse"
         ></div>
-        <div class="h-8 w-2/3 bg-zinc-800 rounded mb-4 animate-pulse"></div>
-        <div class="h-4 w-1/2 bg-zinc-800 rounded mb-2 animate-pulse"></div>
-        <div class="h-4 w-1/3 bg-zinc-800 rounded mb-8 animate-pulse"></div>
-        <div class="flex gap-2 mb-4">
-          <div v-for="i in 5" :key="i" class="h-10 w-14 bg-zinc-800 rounded animate-pulse"></div>
+        <div class="h-6 md:h-8 w-2/3 bg-zinc-800 rounded mb-3 md:mb-4 animate-pulse"></div>
+        <div class="h-3 md:h-4 w-1/2 bg-zinc-800 rounded mb-2 animate-pulse"></div>
+        <div class="h-3 md:h-4 w-1/3 bg-zinc-800 rounded mb-6 md:mb-8 animate-pulse"></div>
+        <div class="flex gap-2 mb-4 overflow-x-auto">
+          <div
+            v-for="i in 5"
+            :key="i"
+            class="h-8 md:h-10 w-12 md:w-14 bg-zinc-800 rounded animate-pulse flex-shrink-0"
+          ></div>
         </div>
       </div>
 
       <!-- Error state -->
-      <div v-else-if="error" class="flex flex-col items-center justify-center py-12">
-        <div class="text-5xl text-red-500 mb-4">
+      <div v-else-if="error" class="flex flex-col items-center justify-center py-8 md:py-12">
+        <div class="text-3xl md:text-5xl text-red-500 mb-3 md:mb-4">
           <font-awesome-icon :icon="['fas', 'exclamation-circle']" />
         </div>
-        <div class="text-xl text-red-500 mb-2">{{ error }}</div>
-        <p class="text-zinc-400 mb-6">Không thể tải phim. Vui lòng thử lại sau.</p>
-        <router-link to="/" class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-full transition">
+        <div class="text-lg md:text-xl text-red-500 mb-2">{{ error }}</div>
+        <p class="text-zinc-400 mb-4 md:mb-6 text-center text-sm md:text-base">
+          Không thể tải phim. Vui lòng thử lại sau.
+        </p>
+        <router-link
+          to="/"
+          class="px-4 md:px-6 py-1.5 md:py-2 bg-red-600 hover:bg-red-700 rounded-full transition text-sm md:text-base"
+        >
           Trở về trang chủ
         </router-link>
       </div>
 
       <!-- Content -->
-      <div v-else class="flex flex-col mt-4">
+      <div v-else class="flex flex-col mt-2 md:mt-4">
         <!-- Video player container -->
-        <div class="relative group mb-8">
+        <div class="relative group mb-4 md:mb-8">
           <!-- Movie info overlay - hidden by default, visible on group hover -->
           <div
             class="absolute top-0 left-0 w-full z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           >
             <div class="flex flex-col">
-              <div class="p-4 text-white bg-gradient-to-b from-black/80 to-transparent">
+              <div class="p-3 md:p-4 text-white bg-gradient-to-b from-black/80 to-transparent">
                 <div class="flex items-center justify-between">
                   <div>
-                    <h2 class="text-2xl font-bold mb-1">{{ movie.name }}</h2>
-                    <div class="text-sm opacity-80">
+                    <h2 class="text-xl md:text-2xl font-bold mb-0.5 md:mb-1">{{ movie.name }}</h2>
+                    <div class="text-xs md:text-sm opacity-80">
                       {{
                         currentEpisode
                           ? `Phần ${movie.episode_current} - ${currentEpisode.name}`
@@ -66,10 +77,10 @@
                   <button
                     v-if="episodes.length > 1"
                     @click="toggleSideEpisodesPanel"
-                    class="px-4 py-2 bg-zinc-800/70 hover:bg-zinc-700 rounded-full text-white text-sm transition flex items-center gap-2"
+                    class="px-3 md:px-4 py-1 md:py-2 bg-zinc-800/70 hover:bg-zinc-700 rounded-full text-white text-xs md:text-sm transition flex items-center gap-1 md:gap-2"
                   >
                     <font-awesome-icon :icon="['fas', 'list']" />
-                    Danh sách tập
+                    <span class="hidden sm:inline">Danh sách tập</span>
                   </button>
                 </div>
               </div>
@@ -84,9 +95,9 @@
               <div class="flex flex-col items-center">
                 <font-awesome-icon
                   :icon="['fas', 'spinner']"
-                  class="text-4xl text-white mb-4 animate-spin"
+                  class="text-2xl md:text-4xl text-white mb-3 md:mb-4 animate-spin"
                 />
-                <div class="text-lg">Đang tải tập phim...</div>
+                <div class="text-sm md:text-lg">Đang tải tập phim...</div>
               </div>
             </div>
 
@@ -101,7 +112,7 @@
             ></iframe>
 
             <div v-else class="flex items-center justify-center h-full">
-              <div class="text-xl">Không có video</div>
+              <div class="text-base md:text-xl">Không có video</div>
             </div>
           </div>
 
@@ -113,26 +124,26 @@
           <!-- Side Episodes Panel -->
           <div
             v-if="showSideEpisodesPanel && episodes.length > 1"
-            class="absolute top-0 right-0 h-full bg-zinc-900/90 backdrop-blur-sm w-72 shadow-lg z-20 overflow-auto transition-transform duration-300 ease-in-out"
+            class="absolute top-0 right-0 h-full bg-zinc-900/90 backdrop-blur-sm w-48 md:w-72 shadow-lg z-20 overflow-auto transition-transform duration-300 ease-in-out"
             :class="showSideEpisodesPanel ? 'translate-x-0' : 'translate-x-full'"
           >
-            <div class="p-4">
-              <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Danh sách tập</h3>
+            <div class="p-3 md:p-4">
+              <div class="flex justify-between items-center mb-3 md:mb-4">
+                <h3 class="text-base md:text-lg font-semibold">Danh sách tập</h3>
                 <button
                   @click="showSideEpisodesPanel = false"
-                  class="text-zinc-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-700/50"
+                  class="text-zinc-400 hover:text-white w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full hover:bg-zinc-700/50"
                 >
-                  <font-awesome-icon :icon="['fas', 'times']" />
+                  <font-awesome-icon :icon="['fas', 'times']" class="text-sm md:text-base" />
                 </button>
               </div>
 
-              <div class="grid grid-cols-2 gap-2">
+              <div class="grid grid-cols-2 gap-1.5 md:gap-2">
                 <button
                   v-for="episode in episodes"
                   :key="episode.slug"
                   :class="[
-                    'px-3 py-2 rounded-lg transition text-sm flex items-center justify-center',
+                    'px-2 md:px-3 py-1.5 md:py-2 rounded-lg transition text-xs md:text-sm flex items-center justify-center',
                     currentEpisode && currentEpisode.slug === episode.slug
                       ? 'bg-red-600 text-white'
                       : 'bg-zinc-800 hover:bg-zinc-700 text-white',
@@ -146,10 +157,32 @@
           </div>
         </div>
 
-        <!-- Bottom Episodes panel (conditionally shown) -->
+        <!-- Mobile Episodes Horizontal Scroller -->
+        <div v-if="episodes.length > 1" class="mb-4 md:hidden">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-semibold">Tập phim</h3>
+          </div>
+          <div class="flex overflow-x-auto gap-1.5 pb-2 hide-scrollbar">
+            <button
+              v-for="episode in episodes"
+              :key="episode.slug"
+              :class="[
+                'px-3 py-1.5 rounded-full transition text-xs flex-shrink-0',
+                currentEpisode && currentEpisode.slug === episode.slug
+                  ? 'bg-red-600 text-white'
+                  : 'bg-zinc-700 hover:bg-zinc-600 text-white',
+              ]"
+              @click="playEpisode(episode)"
+            >
+              {{ episode.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom Episodes panel (larger screens) -->
         <div
           v-if="showEpisodesPanel && episodes.length > 1"
-          class="bg-zinc-800/70 backdrop-blur-sm rounded-xl p-4 mb-8 transform transition-all duration-300 ease-in-out"
+          class="hidden md:block bg-zinc-800/70 backdrop-blur-sm rounded-xl p-4 mb-8 transform transition-all duration-300 ease-in-out"
           :class="showEpisodesPanel ? 'opacity-100 scale-100' : 'opacity-0 scale-95'"
         >
           <div class="flex justify-between items-center mb-4">
@@ -180,61 +213,69 @@
         </div>
 
         <!-- Movie details -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
           <!-- Left column: Movie info -->
           <div class="md:col-span-2">
-            <h2 class="text-2xl font-bold mb-4">{{ movie.name }}</h2>
-            <div class="flex flex-wrap gap-2 mb-6">
+            <h2 class="text-xl md:text-2xl font-bold mb-3 md:mb-4">{{ movie.name }}</h2>
+            <div class="flex flex-wrap gap-1.5 md:gap-2 mb-4 md:mb-6">
               <span
                 v-for="(category, idx) in movie.category"
                 :key="idx"
-                class="inline-flex items-center bg-zinc-800/50 px-2.5 py-1 rounded-full text-sm cursor-pointer hover:bg-zinc-700 transition"
+                class="inline-flex items-center bg-zinc-800/50 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-xs md:text-sm cursor-pointer hover:bg-zinc-700 transition"
                 @click="goToCategory(category)"
               >
                 {{ category.name }}
               </span>
               <span
-                class="inline-flex items-center bg-zinc-800/50 px-2.5 py-1 rounded-full text-sm"
+                class="inline-flex items-center bg-zinc-800/50 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-xs md:text-sm"
               >
                 {{ movie.year }}
               </span>
               <span
-                class="inline-flex items-center bg-zinc-800/50 px-2.5 py-1 rounded-full text-sm"
+                class="inline-flex items-center bg-zinc-800/50 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-xs md:text-sm"
               >
                 {{ movie.time }}
               </span>
             </div>
 
-            <div class="mb-6">
-              <h3 class="text-lg font-semibold mb-2">Tóm tắt nội dung</h3>
-              <p class="text-zinc-300 leading-relaxed">{{ movie.content }}</p>
+            <div class="mb-4 md:mb-6">
+              <h3 class="text-base md:text-lg font-semibold mb-1 md:mb-2">Tóm tắt nội dung</h3>
+              <p class="text-zinc-300 leading-relaxed text-sm md:text-base">{{ movie.content }}</p>
             </div>
           </div>
 
           <!-- Right column: Cast & crew -->
           <div>
-            <div class="bg-zinc-800/50 backdrop-blur-sm rounded-xl p-4 mb-6">
-              <h3 class="text-lg font-semibold mb-4">Diễn viên</h3>
+            <div class="bg-zinc-800/50 backdrop-blur-sm rounded-xl p-3 md:p-4 mb-4 md:mb-6">
+              <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4">Diễn viên</h3>
               <div v-if="movie.actor && movie.actor.length > 0">
-                <div v-for="(actor, index) in movie.actor" :key="index" class="mb-2 last:mb-0">
-                  <div class="text-white">{{ actor }}</div>
+                <div
+                  v-for="(actor, index) in movie.actor"
+                  :key="index"
+                  class="mb-1 md:mb-2 last:mb-0"
+                >
+                  <div class="text-sm md:text-base text-white">{{ actor }}</div>
                 </div>
               </div>
-              <div v-else class="text-zinc-500">Không có thông tin diễn viên</div>
+              <div v-else class="text-sm md:text-base text-zinc-500">
+                Không có thông tin diễn viên
+              </div>
             </div>
 
-            <div class="bg-zinc-800/50 backdrop-blur-sm rounded-xl p-4">
-              <h3 class="text-lg font-semibold mb-4">Đạo diễn</h3>
+            <div class="bg-zinc-800/50 backdrop-blur-sm rounded-xl p-3 md:p-4">
+              <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4">Đạo diễn</h3>
               <div v-if="movie.director && movie.director.length > 0">
                 <div
                   v-for="(director, index) in movie.director"
                   :key="index"
-                  class="mb-2 last:mb-0"
+                  class="mb-1 md:mb-2 last:mb-0"
                 >
-                  <div class="text-white">{{ director }}</div>
+                  <div class="text-sm md:text-base text-white">{{ director }}</div>
                 </div>
               </div>
-              <div v-else class="text-zinc-500">Không có thông tin đạo diễn</div>
+              <div v-else class="text-sm md:text-base text-zinc-500">
+                Không có thông tin đạo diễn
+              </div>
             </div>
           </div>
         </div>
@@ -244,31 +285,34 @@
     <!-- Continue Watching Popup -->
     <div
       v-if="showContinuePopup"
-      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
     >
       <div
-        class="bg-zinc-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-100"
+        class="bg-zinc-800 rounded-xl p-4 md:p-6 max-w-md w-full mx-auto shadow-2xl transform transition-all duration-300 scale-100"
       >
-        <div class="text-center mb-4">
-          <font-awesome-icon :icon="['fas', 'play-circle']" class="text-4xl text-red-500 mb-2" />
-          <h3 class="text-xl font-bold">Tiếp tục xem?</h3>
+        <div class="text-center mb-3 md:mb-4">
+          <font-awesome-icon
+            :icon="['fas', 'play-circle']"
+            class="text-2xl md:text-4xl text-red-500 mb-1.5 md:mb-2"
+          />
+          <h3 class="text-lg md:text-xl font-bold">Tiếp tục xem?</h3>
         </div>
 
-        <p class="text-gray-300 mb-6 text-center">
+        <p class="text-gray-300 mb-4 md:mb-6 text-center text-sm md:text-base">
           Bạn đã xem {{ movie.name }} đến {{ formatTime(savedWatchTime) }}. Bạn muốn tiếp tục xem từ
           đó không?
         </p>
 
-        <div class="flex gap-3 justify-center">
+        <div class="flex gap-2 md:gap-3 justify-center">
           <button
             @click="resumeWatching"
-            class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full transition-colors"
+            class="bg-red-600 hover:bg-red-700 text-white px-3 md:px-5 py-1.5 md:py-2 rounded-full transition-colors text-sm md:text-base"
           >
             Tiếp tục xem
           </button>
           <button
             @click="startFromBeginning"
-            class="bg-zinc-700 hover:bg-zinc-600 text-white px-5 py-2 rounded-full transition-colors"
+            class="bg-zinc-700 hover:bg-zinc-600 text-white px-3 md:px-5 py-1.5 md:py-2 rounded-full transition-colors text-sm md:text-base"
           >
             Xem từ đầu
           </button>
@@ -560,5 +604,16 @@ export default {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 </style>
