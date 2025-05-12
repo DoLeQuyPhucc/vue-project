@@ -45,10 +45,12 @@
       <div v-else class="flex flex-col mt-4">
         <!-- Video player container -->
         <div class="relative group mb-8">
-          <!-- Movie info overlay - displays on top of video when page loads, fades out on hover -->
-          <div class="absolute top-0 left-0 w-full z-10">
+          <!-- Movie info overlay - hidden by default, visible on group hover -->
+          <div
+            class="absolute top-0 left-0 w-full z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          >
             <div class="flex flex-col">
-              <div class="p-4 text-white">
+              <div class="p-4 text-white bg-gradient-to-b from-black/80 to-transparent">
                 <div class="flex items-center justify-between">
                   <div>
                     <h2 class="text-2xl font-bold mb-1">{{ movie.name }}</h2>
@@ -95,6 +97,7 @@
               allowfullscreen
               frameborder="0"
               ref="videoPlayer"
+              @load="onVideoLoad"
             ></iframe>
 
             <div v-else class="flex items-center justify-center h-full">
@@ -237,6 +240,41 @@
         </div>
       </div>
     </div>
+
+    <!-- Continue Watching Popup -->
+    <div
+      v-if="showContinuePopup"
+      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-zinc-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-100"
+      >
+        <div class="text-center mb-4">
+          <font-awesome-icon :icon="['fas', 'play-circle']" class="text-4xl text-red-500 mb-2" />
+          <h3 class="text-xl font-bold">Tiếp tục xem?</h3>
+        </div>
+
+        <p class="text-gray-300 mb-6 text-center">
+          Bạn đã xem {{ movie.name }} đến {{ formatTime(savedWatchTime) }}. Bạn muốn tiếp tục xem từ
+          đó không?
+        </p>
+
+        <div class="flex gap-3 justify-center">
+          <button
+            @click="resumeWatching"
+            class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full transition-colors"
+          >
+            Tiếp tục xem
+          </button>
+          <button
+            @click="startFromBeginning"
+            class="bg-zinc-700 hover:bg-zinc-600 text-white px-5 py-2 rounded-full transition-colors"
+          >
+            Xem từ đầu
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -250,11 +288,39 @@ import {
   faList,
   faTimes,
   faExclamationCircle,
+  faPlayCircle,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 // Add the icons to the library
-library.add(faPlay, faArrowLeft, faSpinner, faList, faTimes, faExclamationCircle)
+library.add(faPlay, faArrowLeft, faSpinner, faList, faTimes, faExclamationCircle, faPlayCircle)
+
+// IndexedDB setup and helper functions
+const DB_NAME = 'movieWatchDB'
+const DB_VERSION = 1
+const STORE_NAME = 'watchProgress'
+
+const openDB = () => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION)
+
+    request.onerror = (event) => {
+      reject('Error opening database: ' + event.target.error)
+    }
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result)
+    }
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result
+      // Create object store for watch progress if it doesn't exist
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id' })
+      }
+    }
+  })
+}
 
 export default {
   components: {
@@ -270,11 +336,18 @@ export default {
       showEpisodesPanel: false,
       showSideEpisodesPanel: false,
       isChangingEpisode: false,
+      showContinuePopup: false,
+      savedWatchTime: 0,
+      watchProgressInterval: null,
+      currentWatchTime: 0,
     }
   },
   computed: {
     slug() {
       return this.$route.params.slug
+    },
+    progressKey() {
+      return `${this.movie._id || ''}_${this.currentEpisode?.slug || ''}`
     },
   },
   methods: {
@@ -296,7 +369,7 @@ export default {
           if (firstServerWithEpisodes) {
             this.episodes = firstServerWithEpisodes.server_data
             // Set first episode as current
-            this.playEpisode(this.episodes[0], false)
+            await this.checkWatchProgress(this.episodes[0])
           }
         }
 
@@ -307,17 +380,111 @@ export default {
         console.error(error)
       }
     },
+    async checkWatchProgress(episode) {
+      try {
+        this.currentEpisode = episode
+
+        // Check if there's saved progress for this movie & episode
+        const db = await openDB()
+        const transaction = db.transaction(STORE_NAME, 'readonly')
+        const store = transaction.objectStore(STORE_NAME)
+
+        const key = `${this.movie._id}_${episode.slug}`
+        const request = store.get(key)
+
+        request.onsuccess = (event) => {
+          const result = event.target.result
+          if (result && result.time > 30) {
+            // Only show if more than 30 seconds watched
+            this.savedWatchTime = result.time
+            this.showContinuePopup = true
+          } else {
+            // No significant progress, just start playing
+            this.playEpisode(episode, false)
+          }
+        }
+
+        request.onerror = () => {
+          // Error reading from DB, just play the episode
+          this.playEpisode(episode, false)
+        }
+      } catch (error) {
+        console.error('Error checking watch progress:', error)
+        this.playEpisode(episode, false)
+      }
+    },
+    async saveWatchProgress(time) {
+      if (!this.movie._id || !this.currentEpisode) return
+
+      try {
+        const db = await openDB()
+        const transaction = db.transaction(STORE_NAME, 'readwrite')
+        const store = transaction.objectStore(STORE_NAME)
+
+        const data = {
+          id: this.progressKey,
+          movieId: this.movie._id,
+          episodeSlug: this.currentEpisode.slug,
+          movieName: this.movie.name,
+          episodeName: this.currentEpisode.name,
+          time: time,
+          timestamp: Date.now(),
+        }
+
+        store.put(data)
+      } catch (error) {
+        console.error('Error saving watch progress:', error)
+      }
+    },
+    onVideoLoad() {
+      // Set up watch progress tracking
+      this.setupProgressTracking()
+    },
+    setupProgressTracking() {
+      // Clear any existing interval
+      if (this.watchProgressInterval) {
+        clearInterval(this.watchProgressInterval)
+      }
+
+      // Update and save progress every 5 seconds
+      this.watchProgressInterval = setInterval(() => {
+        try {
+          // Use postMessage or another method to get current time from iframe
+          // For now we'll just increment (not accurate but shows the concept)
+          this.currentWatchTime += 5
+          this.saveWatchProgress(this.currentWatchTime)
+        } catch (error) {
+          console.error('Error tracking progress:', error)
+        }
+      }, 5000)
+    },
+    resumeWatching() {
+      this.showContinuePopup = false
+      this.currentWatchTime = this.savedWatchTime
+      this.playEpisode(this.currentEpisode, true)
+
+      // In a real implementation, you would seek the video to savedWatchTime
+      // This would typically require communication with the iframe
+    },
+    startFromBeginning() {
+      this.showContinuePopup = false
+      this.currentWatchTime = 0
+      this.saveWatchProgress(0) // Reset saved progress
+      this.playEpisode(this.currentEpisode, true)
+    },
     playEpisode(episode, showLoading = true) {
       if (showLoading) {
         this.isChangingEpisode = true
         setTimeout(() => {
           this.currentEpisode = episode
+          this.currentWatchTime = 0 // Reset watch time for new episode
           setTimeout(() => {
             this.isChangingEpisode = false
           }, 1000)
         }, 500)
       } else {
         this.currentEpisode = episode
+        this.currentWatchTime = 0 // Reset watch time for new episode
       }
 
       // Scroll to top when changing episodes
@@ -334,12 +501,33 @@ export default {
         this.$router.push(`/the-loai/${category.slug}`)
       }
     },
+    formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60)
+      const remainingSeconds = Math.floor(seconds % 60)
+      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+    },
   },
   mounted() {
     this.fetchMovie()
   },
+  beforeUnmount() {
+    // Clean up interval when component is destroyed
+    if (this.watchProgressInterval) {
+      clearInterval(this.watchProgressInterval)
+    }
+
+    // Save final progress before leaving
+    if (this.currentWatchTime > 0) {
+      this.saveWatchProgress(this.currentWatchTime)
+    }
+  },
   watch: {
     slug() {
+      // Clean up before changing movie
+      if (this.watchProgressInterval) {
+        clearInterval(this.watchProgressInterval)
+      }
+
       this.fetchMovie()
     },
   },
