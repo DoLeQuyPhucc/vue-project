@@ -2,6 +2,7 @@
 import TheWelcome from '../components/TheWelcome.vue'
 import HeroSection from '@/components/HeroSection.vue'
 import CategoryGrid from '@/components/CategoryGrid.vue'
+import MovieHotCountry from '@/components/MovieHotCountry.vue'
 </script>
 
 <template>
@@ -15,6 +16,7 @@ import CategoryGrid from '@/components/CategoryGrid.vue'
 
     <div class="content-section relative z-20">
       <CategoryGrid />
+      <MovieHotCountry />
     </div>
   </main>
 </template>

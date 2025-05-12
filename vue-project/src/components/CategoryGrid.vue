@@ -1,8 +1,10 @@
 <template>
   <div class="pt-0 pb-8 px-4 md:pb-12 relative">
     <!-- Soft top gradient overlay to blend with hero section -->
-    <div class="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-zinc-900/80 to-transparent pointer-events-none"></div>
-    
+    <div
+      class="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-zinc-900/80 to-transparent pointer-events-none"
+    ></div>
+
     <h2 class="text-2xl font-bold mb-6 text-white relative z-10">Bạn đang quan tâm gì?</h2>
 
     <div v-if="loading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -21,6 +23,18 @@
         class="relative aspect-[3/2] rounded-lg overflow-hidden group transform transition-transform duration-300 hover:scale-105 hover:shadow-lg"
         :style="{ background: getCategoryGradient(category.slug) }"
       >
+        <!-- Wave SVG pattern overlay -->
+        <div class="absolute inset-0 opacity-25 overflow-hidden">
+          <svg
+            class="w-full h-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            :style="{ fill: getWaveColor(category.slug) }"
+          >
+            <path d="M0,50 C20,60 40,40 60,50 C80,60 100,40 100,50 L100,100 L0,100 Z" />
+          </svg>
+        </div>
+
         <div class="absolute inset-0 z-20 flex flex-col justify-end p-4">
           <h3 class="text-lg font-bold text-white">{{ category.name }}</h3>
           <div class="flex items-center mt-2 text-white/80 text-sm">
@@ -47,6 +61,13 @@
         to="/the-loai"
         class="relative aspect-[3/2] rounded-lg overflow-hidden group bg-gradient-to-br from-zinc-800 to-zinc-900 transform transition-transform duration-300 hover:scale-105"
       >
+        <!-- Wave SVG pattern overlay -->
+        <div class="absolute inset-0 opacity-20 overflow-hidden">
+          <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none" fill="white">
+            <path d="M0,40 C15,50 35,30 50,40 C65,50 85,30 100,40 L100,100 L0,100 Z" />
+          </svg>
+        </div>
+
         <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
           <h3 class="text-lg font-bold text-white">+{{ remainingCount }} chủ đề</h3>
         </div>
@@ -68,6 +89,27 @@ const remainingCount = computed(() => {
   return Math.max(0, allCategories.value.length - categories.value.length)
 })
 
+// Get the base wave color based on category slug
+function getWaveColor(slug: string): string {
+  const colors: Record<string, string> = {
+    'hanh-dong': 'white',
+    'mien-tay': '#FFD700',
+    'tinh-cam': 'white',
+    'co-trang': '#FFD700',
+    'hai-huoc': 'white',
+    'hoat-hinh': 'white',
+    'phieu-luu': 'white',
+    'kinh-di': '#111111',
+    'gia-dinh': 'white',
+    'than-thoai': 'white',
+    'chien-tranh': 'white',
+    'lich-su': 'white',
+    'tre-em': 'white',
+  }
+
+  return colors[slug] || 'white'
+}
+
 function getCategoryGradient(slug: string): string {
   // Custom gradients for each category
   const gradients: Record<string, string> = {
@@ -81,6 +123,9 @@ function getCategoryGradient(slug: string): string {
     'kinh-di': 'linear-gradient(135deg, #2C3E50 0%, #000000 100%)', // Dark blue/black for horror
     'gia-dinh': 'linear-gradient(135deg, #8E54E9 0%, #4776E6 100%)', // Purple for family
     'than-thoai': 'linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%)', // Deep blue for mythology
+    'chien-tranh': 'linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%)', // Blue for war
+    'lich-su': 'linear-gradient(135deg, #5D4257 0%, #A5A5A5 100%)', // Purple-grey for history
+    'tre-em': 'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)', // Light blue for kids
   }
 
   return gradients[slug] || 'linear-gradient(135deg, #514A9D 0%, #24C6DC 100%)' // Default gradient
@@ -117,6 +162,25 @@ onMounted(() => {
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+/* Make sure SVG animations are smooth on all browsers */
+svg {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Responsive adjustments for different screen sizes */
+@media (max-width: 640px) {
+  .grid {
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  h3 {
+    font-size: 1rem;
   }
 }
 </style>
