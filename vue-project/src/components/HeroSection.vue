@@ -14,61 +14,60 @@
             <div class="relative w-full h-full overflow-hidden">
               <img :src="movie.thumb_url" :alt="movie.name" class="w-full h-full object-cover" />
               <div
-                class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 via-black/40 to-transparent text-white p-8 pt-16"
+                class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 via-black/40 to-transparent text-white p-8 pt-16 pb-16"
               >
-                <div
-                  class="absolute -top-6 left-5 bg-[#ff6b6b] text-white px-2 py-0.5 rounded text-sm font-bold"
-                >
-                  {{ movie.quality }}
-                </div>
                 <div class="max-w-3xl">
-                  <h2 class="text-5xl font-bold mb-4 drop-shadow-lg">{{ movie.name }}</h2>
-                  <div class="flex flex-wrap gap-2 mb-4">
+                  <h2 class="text-4xl font-bold mb-4 drop-shadow-lg">{{ movie.name }}</h2>
+                  <div class="flex flex-wrap gap-1.5 mb-4 max-h-[4.5rem] overflow-hidden">
                     <span
                       v-if="movie.imdb"
-                      class="inline-flex items-center bg-yellow-600 px-2.5 py-1 rounded text-sm"
+                      class="inline-flex items-center bg-yellow-600 px-2 py-0.5 rounded text-xs"
                     >
                       IMDb {{ movie.imdb_rating }}
                     </span>
-                    <span class="inline-flex items-center bg-white/20 px-2.5 py-1 rounded">
+                    <span class="inline-flex items-center bg-white/20 px-2 py-0.5 rounded text-xs">
                       {{ movie.quality }}
                     </span>
                     <span
                       v-for="(category, idx) in movie.category"
                       :key="idx"
-                      class="inline-flex items-center bg-white/20 px-2.5 py-1 rounded"
+                      class="inline-flex items-center bg-white/20 px-2 py-0.5 rounded text-xs"
                     >
                       {{ category.name }}
                     </span>
-                    <span class="inline-flex items-center bg-white/20 px-2.5 py-1 rounded">
+                    <span class="inline-flex items-center bg-white/20 px-2 py-0.5 rounded text-xs">
                       {{ movie.year }}
                     </span>
-                    <span class="inline-flex items-center bg-white/20 px-2.5 py-1 rounded">
+                    <span class="inline-flex items-center bg-white/20 px-2 py-0.5 rounded text-xs">
                       {{ movie.time }}
                     </span>
-                    <span class="inline-flex items-center bg-white/20 px-2.5 py-1 rounded">
+                    <span class="inline-flex items-center bg-white/20 px-2 py-0.5 rounded text-xs">
                       {{ movie.episode_current }}
                     </span>
                   </div>
-                  <p class="text-gray-300 mb-4 line-clamp-3 max-w-2xl">
+                  <p class="text-gray-300 mb-5 line-clamp-3 max-w-2xl text-sm">
                     {{ movie.content }}
                   </p>
-                  <div class="flex gap-4 mt-6">
-                    <button
-                      class="bg-[#4caf50] hover:bg-[#45a049] text-white px-6 py-2.5 rounded font-bold transition-colors"
+                  <div class="flex gap-3 mt-6">
+                    <router-link 
+                      :to="`/xem-phim/${movie.slug}`" 
+                      class="bg-[#4caf50] hover:bg-[#45a049] text-white flex items-center justify-center w-12 h-12 rounded-full transition-colors"
                     >
-                      Xem chi tiết
-                    </button>
-                    <button
-                      class="flex items-center justify-center w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full text-white text-xl transition-colors"
-                    >
-                      ♥
-                    </button>
-                    <button
-                      class="flex items-center justify-center w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full text-white text-xl transition-colors"
-                    >
-                      ℹ
-                    </button>
+                      <font-awesome-icon :icon="['fas', 'play']" size="lg" />
+                    </router-link>
+                    <div class="flex overflow-hidden rounded-full bg-white/20">
+                      <button
+                        class="flex items-center justify-center w-12 h-12 text-white hover:bg-white/30 transition-colors border-r border-white/30"
+                      >
+                        <font-awesome-icon :icon="['fas', 'heart']" size="lg" />
+                      </button>
+                      <router-link
+                        :to="`/phim/${movie.slug}`"
+                        class="flex items-center justify-center w-12 h-12 text-white hover:bg-white/30 transition-colors"
+                      >
+                        <font-awesome-icon :icon="['fas', 'info']" size="lg" />
+                      </router-link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -76,7 +75,7 @@
           </div>
         </div>
       </div>
-      <div class="absolute bottom-12 right-6 flex gap-2.5 z-10">
+      <div class="absolute bottom-20 right-6 flex gap-2.5 z-10">
         <div
           v-for="(movie, index) in displayedMovies"
           :key="movie._id"
@@ -91,7 +90,7 @@
           <img :src="movie.thumb_url" :alt="movie.name" class="w-full h-full object-cover" />
         </div>
       </div>
-      <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
+      <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
         <span
           v-for="(_, index) in displayedMovies"
           :key="index"
@@ -108,8 +107,17 @@
 
 <script>
 import { getLatestMovies } from '../services/movieService'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faPlay, faHeart, faInfo } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+// Add the icons to the library
+library.add(faPlay, faHeart, faInfo)
 
 export default {
+  components: {
+    FontAwesomeIcon,
+  },
   data() {
     return {
       movies: [],

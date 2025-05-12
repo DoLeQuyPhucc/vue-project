@@ -14,6 +14,16 @@ const routes = [
         component: () => import('@/views/MovieDetail.vue'),
       },
       {
+        path: 'phim/:slug',
+        name: 'movie-info',
+        component: () => import('@/views/MovieDetail.vue'),
+      },
+      {
+        path: 'xem-phim/:slug',
+        name: 'movie-watch',
+        component: () => import('@/views/MovieWatch.vue'),
+      },
+      {
         path: 'watchlist',
         name: 'watchlist',
         component: () => import('@/views/Watchlist.vue'),
