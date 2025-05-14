@@ -1,5 +1,5 @@
 <template>
-  <div class="pt-0 pb-8 px-4 md:pb-12 relative">
+  <div class="pt-0 pb-8 px-4 md:px-8 md:pb-12 relative">
     <!-- Soft top gradient overlay to blend with hero section -->
     <div
       class="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-zinc-900/80 to-transparent pointer-events-none"

@@ -1,6 +1,6 @@
 <template>
   <header
-    class="fixed top-0 left-0 right-0 z-50 flex flex-col md:flex-row items-center px-4 md:px-6 py-3 transition-all duration-300"
+    class="fixed top-0 left-0 right-0 z-50 flex flex-col md:flex-row items-center px-8 md:px-6 py-3 transition-all duration-300"
     :class="scrolled ? 'bg-zinc-900/95 shadow-md' : 'bg-gradient-to-b from-black/80 to-transparent'"
   >
     <!-- Logo and search container (full width on mobile, flex on desktop) -->
@@ -24,7 +24,7 @@
       <input
         type="text"
         placeholder="Tìm kiếm phim, diễn viên"
-        class="w-full md:w-64 bg-zinc-800/80 text-white border border-zinc-700 rounded-full px-4 py-2 pl-11 focus:outline-none focus:border-red-500"
+        class="w-full md:w-64 bg-zinc-800/80 text-white border border-zinc-700 rounded-full px-8 py-2 pl-11 focus:outline-none focus:border-red-500"
       />
       <div
         class="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 pointer-events-none"

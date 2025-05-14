@@ -1,7 +1,7 @@
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-5">
-    <!-- Left column: Title and View All link (20%) -->
-    <div class="p-6 md:p-10 flex flex-col">
+  <div class="flex flex-col md:flex-row">
+    <!-- Left column: Title and View All link (15%) -->
+    <div class="p-6 md:p-10 flex flex-col md:w-[15%]">
       <div>
         <h3 class="text-2xl font-bold mb-1 leading-tight">
           <span :class="getTitleColor(countrySlug)">{{ getFirstPart(countrySlug) }}</span>
@@ -32,8 +32,8 @@
       </router-link>
     </div>
 
-    <!-- Right column: Movie carousel (80%) -->
-    <div class="md:col-span-4 relative p-4 md:p-6">
+    <!-- Right column: Movie carousel (85%) -->
+    <div class="md:w-[85%] relative p-4 md:p-6">
       <!-- Loading state -->
       <div v-if="loading" class="flex overflow-x-auto gap-3 hide-scrollbar">
         <div v-for="i in 5" :key="i" class="flex-shrink-0 w-[220px]">

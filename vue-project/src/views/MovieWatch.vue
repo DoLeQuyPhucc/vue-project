@@ -2,7 +2,7 @@
   <div class="bg-zinc-900 min-h-screen text-white pt-16 md:pt-20">
     <!-- Header with movie title and back button -->
     <div class="relative z-10">
-      <div class="container mx-auto px-4 py-2 md:py-4">
+      <div class="container mx-auto px-8 py-2 md:py-4">
         <div class="flex items-center gap-2 md:gap-4">
           <router-link
             :to="'/'"
@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <div class="container mx-auto px-4 pb-8 md:pb-12">
+    <div class="container mx-auto px-8 pb-8 md:pb-12">
       <!-- Loading state -->
       <div v-if="loading" class="w-full">
         <div
@@ -46,7 +46,7 @@
         </p>
         <router-link
           to="/"
-          class="px-4 md:px-6 py-1.5 md:py-2 bg-red-600 hover:bg-red-700 rounded-full transition text-sm md:text-base"
+          class="px-8 md:px-6 py-1.5 md:py-2 bg-red-600 hover:bg-red-700 rounded-full transition text-sm md:text-base"
         >
           Trở về trang chủ
         </router-link>
@@ -77,7 +77,7 @@
                   <button
                     v-if="episodes.length > 1"
                     @click="toggleSideEpisodesPanel"
-                    class="px-3 md:px-4 py-1 md:py-2 bg-zinc-800/70 hover:bg-zinc-700 rounded-full text-white text-xs md:text-sm transition flex items-center gap-1 md:gap-2"
+                    class="px-3 md:px-8 py-1 md:py-2 bg-zinc-800/70 hover:bg-zinc-700 rounded-full text-white text-xs md:text-sm transition flex items-center gap-1 md:gap-2"
                   >
                     <font-awesome-icon :icon="['fas', 'list']" />
                     <span class="hidden sm:inline">Danh sách tập</span>
@@ -285,7 +285,7 @@
     <!-- Continue Watching Popup -->
     <div
       v-if="showContinuePopup"
-      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
+      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-8"
     >
       <div
         class="bg-zinc-800 rounded-xl p-4 md:p-6 max-w-md w-full mx-auto shadow-2xl transform transition-all duration-300 scale-100"
