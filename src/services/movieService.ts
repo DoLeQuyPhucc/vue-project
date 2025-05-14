@@ -107,3 +107,13 @@ export const getMovieDetail = async (slug: string): Promise<MovieDetailResponse>
   const response = await axiosInstance.get(`/phim/${slug}`)
   return response.data
 }
+
+export const getFilmBo = async () => {
+  const response = await axiosInstance.get('v1/api/danh-sach/phim-bo')
+  return response.data
+}
+
+export const getFilmLe = async () => {
+  const response = await axiosInstance.get('v1/api/danh-sach/phim-le')
+  return response.data
+}

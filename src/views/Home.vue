@@ -3,6 +3,8 @@ import HeroSection from '@/components/HeroSection.vue'
 import CategoryGrid from '@/components/CategoryGrid.vue'
 import MovieHotCountry from '@/components/MovieHotCountry.vue'
 import FeaturedMovie from '@/components/FeaturedMovie.vue'
+import FilmSeriesCarousel from '@/components/FilmSeriesCarousel.vue'
+import FilmMovieCarousel from '@/components/FilmMovieCarousel.vue'
 </script>
 
 <template>
@@ -34,6 +36,22 @@ import FeaturedMovie from '@/components/FeaturedMovie.vue'
         <!-- FeaturedMovie with negative margin to create overlap -->
         <div class="relative -mt-16 z-10">
           <FeaturedMovie />
+        </div>
+        
+        <!-- Film Series Section with visual connection -->
+        <div class="relative">
+          <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-zinc-900 to-transparent z-0"></div>
+          <div class="relative z-10 mt-8">
+            <FilmSeriesCarousel />
+          </div>
+        </div>
+        
+        <!-- Film Movies Section with visual connection -->
+        <div class="relative">
+          <div class="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-zinc-900/70 to-transparent z-0"></div>
+          <div class="relative z-10 mt-4">
+            <FilmMovieCarousel />
+          </div>
         </div>
       </div>
     </div>
