@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col md:flex-row">
     <!-- Left column: Title and View All link (15%) -->
-    <div class="p-6 md:p-10 flex flex-col md:w-[20%]">
+    <div class="p-4 md:p-8 flex flex-col md:w-[20%]">
       <div>
-        <h3 class="text-2xl md:text-[2.3rem] font-bold mb-2 leading-tight">
+        <h3 class="text-xl md:text-[2.2rem] font-bold mb-2 leading-tight">
           <span :class="getTitleColor(countrySlug)">{{ getFirstPart(countrySlug) }}</span>
           <div>
             <span :class="getTitleColor(countrySlug)">{{ getSecondPart(countrySlug) }}</span>
@@ -14,7 +14,7 @@
 
       <router-link
         :to="`/quoc-gia/${countrySlug}`"
-        class="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors group mt-3 text-base"
+        class="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors group mt-2 text-sm md:text-base"
       >
         Xem toàn bộ
         <svg
@@ -33,10 +33,10 @@
     </div>
 
     <!-- Right column: Movie carousel (80%) -->
-    <div class="md:w-[80%] relative p-4 md:p-6">
+    <div class="md:w-[80%] relative p-3 md:p-5 flex-1">
       <!-- Loading state -->
       <div v-if="loading" class="flex overflow-x-auto gap-4 hide-scrollbar">
-        <div v-for="i in maxItems" :key="i" class="flex-shrink-0 w-[280px]">
+        <div v-for="i in 3" :key="i" class="flex-shrink-0 w-[calc(33.33%-11px)]">
           <div class="bg-zinc-800 rounded-lg aspect-video animate-pulse mb-2"></div>
           <div class="h-5 bg-zinc-800 rounded animate-pulse mb-1 w-3/4"></div>
           <div class="h-4 bg-zinc-800 rounded animate-pulse w-1/2"></div>
@@ -49,13 +49,14 @@
       </div>
 
       <!-- Content -->
-      <div v-else class="relative">
+      <div v-else class="relative w-full">
         <!-- Navigation arrows -->
         <button
+          v-if="totalPages > 0"
           @click="scroll(-1)"
-          class="absolute top-1/2 left-2 z-10 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none"
-          :disabled="scrollPosition <= 0"
-          :class="{ 'opacity-50 cursor-not-allowed': scrollPosition <= 0 }"
+          class="absolute top-1/2 left-2 z-10 transform -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none transition-opacity"
+          :disabled="carouselPage <= 0"
+          :class="{ 'opacity-30 cursor-not-allowed': carouselPage <= 0, 'opacity-80 hover:opacity-100': carouselPage > 0 }"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -72,10 +73,11 @@
         </button>
 
         <button
+          v-if="totalPages > 0"
           @click="scroll(1)"
-          class="absolute top-1/2 right-2 z-10 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none"
-          :disabled="scrollPosition >= maxScroll"
-          :class="{ 'opacity-50 cursor-not-allowed': scrollPosition >= maxScroll }"
+          class="absolute top-1/2 right-2 z-10 transform -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none transition-opacity"
+          :disabled="carouselPage >= totalPages"
+          :class="{ 'opacity-30 cursor-not-allowed': carouselPage >= totalPages, 'opacity-80 hover:opacity-100': carouselPage < totalPages }"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -97,52 +99,65 @@
         ></div>
 
         <!-- Movie carousel -->
-        <div
-          ref="scrollContainer"
-          class="flex overflow-x-auto gap-4 hide-scrollbar py-2"
-          @scroll="handleScroll"
-        >
-          <router-link
-            v-for="(movie, index) in displayedMovies"
-            :key="movie._id"
-            :to="`/phim/${movie.slug}`"
-            class="flex-shrink-0 w-[280px] group"
+        <div class="overflow-hidden w-full">
+          <transition-group 
+            name="carousel" 
+            tag="div"
+            class="flex gap-4 py-2 w-full"
           >
-            <div
-              class="relative aspect-video overflow-hidden rounded-lg mb-3 bg-zinc-800 shadow-md"
+            <router-link
+              v-for="(movie, index) in displayedMovies"
+              :key="movie._id"
+              :to="`/phim/${movie.slug}`"
+              class="flex-shrink-0 w-[calc(33.33%-11px)] md:w-[calc(33.33%-11px)] group"
             >
-              <img
-                :src="getImageUrl(movie.thumb_url)"
-                :alt="movie.name"
-                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                loading="lazy"
-              />
+              <div
+                class="relative aspect-video overflow-hidden rounded-lg mb-2 bg-zinc-800 shadow-md"
+              >
+                <img
+                  :src="getImageUrl(movie.thumb_url)"
+                  :alt="movie.name"
+                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  loading="lazy"
+                />
 
-              <div class="absolute bottom-2 left-2 flex gap-1.5">
-                <span
-                  v-if="movie.quality"
-                  class="bg-red-600 text-white text-[11px] px-2 py-0.5 rounded"
-                >
-                  PĐ. {{ movie.quality }}
-                </span>
-                <span
-                  v-if="movie.lang && movie.lang.includes('Thuyết Minh')"
-                  class="bg-blue-600 text-white text-[11px] px-2 py-0.5 rounded"
-                >
-                  TM. {{ movie.episode_current }}
-                </span>
+                <div class="absolute bottom-2 left-2 flex gap-1.5">
+                  <span
+                    v-if="movie.quality"
+                    class="bg-red-600 text-white text-[11px] px-1.5 py-0.5 rounded"
+                  >
+                    PĐ. {{ movie.quality }}
+                  </span>
+                  <span
+                    v-if="movie.lang && movie.lang.includes('Thuyết Minh')"
+                    class="bg-blue-600 text-white text-[11px] px-1.5 py-0.5 rounded"
+                  >
+                    TM. {{ movie.episode_current }}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            <h3
-              class="text-base font-medium text-white truncate group-hover:text-red-500 transition-colors"
-            >
-              {{ movie.name }}
-            </h3>
-            <div class="text-sm text-zinc-400 truncate">
-              {{ movie.origin_name }}
-            </div>
-          </router-link>
+              <h3
+                class="text-sm md:text-base font-medium text-white truncate group-hover:text-red-500 transition-colors"
+              >
+                {{ movie.name }}
+              </h3>
+              <div class="text-xs md:text-sm text-zinc-400 truncate">
+                {{ movie.origin_name }}
+              </div>
+            </router-link>
+          </transition-group>
+        </div>
+
+        <!-- Page indicators -->
+        <div v-if="totalPages > 0" class="flex justify-center mt-3 gap-1.5">
+          <div 
+            v-for="page in totalPages + 1" 
+            :key="page" 
+            class="w-2 h-2 rounded-full cursor-pointer transition-all" 
+            :class="carouselPage === page - 1 ? 'bg-white' : 'bg-zinc-600 hover:bg-zinc-400'"
+            @click="carouselPage = page - 1"
+          ></div>
         </div>
       </div>
     </div>
@@ -171,12 +186,12 @@ const props = defineProps({
 const movies = ref<Movie[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
-const scrollContainer = ref<HTMLElement | null>(null)
-const scrollPosition = ref(0)
-const maxScroll = ref(0)
+const carouselPage = ref(0)
+const totalPages = computed(() => Math.ceil(movies.value.length / 3) - 1)
 
 const displayedMovies = computed(() => {
-  return movies.value.slice(0, props.maxItems)
+  const start = carouselPage.value * 3
+  return movies.value.slice(start, start + 3)
 })
 
 function getFirstPart(slug: string): string {
@@ -220,7 +235,7 @@ async function fetchMovies() {
     loading.value = true
     error.value = null
 
-    movies.value = await getMoviesByCountry(props.countrySlug, props.maxItems + 2) // Fetch a few extra for scrolling
+    movies.value = await getMoviesByCountry(props.countrySlug, 9) // Fetch 9 movies for carousel pagination
 
     loading.value = false
   } catch (err) {
@@ -230,36 +245,19 @@ async function fetchMovies() {
   }
 }
 
-function handleScroll() {
-  if (scrollContainer.value) {
-    scrollPosition.value = scrollContainer.value.scrollLeft
-    maxScroll.value = scrollContainer.value.scrollWidth - scrollContainer.value.clientWidth
-  }
-}
-
 function scroll(direction: number) {
-  if (scrollContainer.value) {
-    const width = scrollContainer.value.clientWidth
-    scrollContainer.value.scrollBy({
-      left: width * 0.75 * direction,
-      behavior: 'smooth',
-    })
+  if (direction > 0 && carouselPage.value < totalPages.value) {
+    carouselPage.value++
+  } else if (direction < 0 && carouselPage.value > 0) {
+    carouselPage.value--
   }
 }
-
-watch(
-  () => scrollContainer.value,
-  (newValue) => {
-    if (newValue) {
-      maxScroll.value = newValue.scrollWidth - newValue.clientWidth
-    }
-  },
-)
 
 watch(
   () => props.countrySlug,
   () => {
-    fetchMovies()
+    carouselPage.value = 0; // Reset to the first page
+    fetchMovies();
   },
 )
 
@@ -292,5 +290,19 @@ onMounted(() => {
   50% {
     opacity: 0.5;
   }
+}
+
+/* Carousel transitions */
+.carousel-enter-active,
+.carousel-leave-active {
+  transition: all 0.5s ease;
+}
+.carousel-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.carousel-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
 }
 </style>

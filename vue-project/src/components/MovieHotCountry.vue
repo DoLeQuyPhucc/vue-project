@@ -1,8 +1,8 @@
 <template>
-  <section class="px-4 md:px-6 py-6">
+  <section class="px-4 md:px-6 py-5">
     <div class="bg-[#262938] rounded-2xl overflow-hidden shadow-lg">
       <!-- Korean Movies Section -->
-      <div class="mb-8 md:mb-10 border-b border-zinc-800 last:border-b-0 last:mb-0 pb-4">
+      <div class="mb-3 md:mb-5 border-b border-zinc-800 last:border-b-0 last:mb-0 pb-3">
         <CountryMovieRow
           country-slug="han-quoc"
           title="Phim Hàn Quốc Mới"
@@ -12,7 +12,7 @@
       </div>
 
       <!-- Chinese Movies Section -->
-      <div class="mb-8 md:mb-10 border-b border-zinc-800 last:border-b-0 last:mb-0 pb-4">
+      <div class="mb-3 md:mb-5 border-b border-zinc-800 last:border-b-0 last:mb-0 pb-3">
         <CountryMovieRow
           country-slug="trung-quoc"
           title="Phim Trung Quốc Mới"
@@ -22,7 +22,7 @@
       </div>
 
       <!-- US/UK Movies Section -->
-      <div class="mb-8 md:mb-10 border-b border-zinc-800 last:border-b-0 last:mb-0 pb-4">
+      <div class="mb-3 md:mb-5 border-b border-zinc-800 last:border-b-0 last:mb-0 pb-3">
         <CountryMovieRow
           country-slug="au-my"
           title="Phim US-UK Mới"
