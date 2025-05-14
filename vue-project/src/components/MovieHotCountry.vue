@@ -1,23 +1,34 @@
 <template>
-  <section class="px-8 md:px-6">
-    <div class="bg-[#262938] rounded-2xl overflow-hidden">
+  <section class="px-4 md:px-6 py-6">
+    <div class="bg-[#262938] rounded-2xl overflow-hidden shadow-lg">
       <!-- Korean Movies Section -->
-      <div class="mb-4 md:mb-6 border-b border-zinc-800 last:border-b-0 last:mb-0">
-        <CountryMovieRow country-slug="han-quoc" title="Phim Hàn Quốc Mới" :key="'han-quoc'" />
+      <div class="mb-8 md:mb-10 border-b border-zinc-800 last:border-b-0 last:mb-0 pb-4">
+        <CountryMovieRow
+          country-slug="han-quoc"
+          title="Phim Hàn Quốc Mới"
+          :key="'han-quoc'"
+          :max-items="3"
+        />
       </div>
 
       <!-- Chinese Movies Section -->
-      <div class="mb-4 md:mb-6 border-b border-zinc-800 last:border-b-0 last:mb-0">
+      <div class="mb-8 md:mb-10 border-b border-zinc-800 last:border-b-0 last:mb-0 pb-4">
         <CountryMovieRow
           country-slug="trung-quoc"
           title="Phim Trung Quốc Mới"
           :key="'trung-quoc'"
+          :max-items="3"
         />
       </div>
 
       <!-- US/UK Movies Section -->
-      <div class="mb-4 md:mb-6 border-b border-zinc-800 last:border-b-0 last:mb-0">
-        <CountryMovieRow country-slug="au-my" title="Phim US-UK Mới" :key="'au-my'" />
+      <div class="mb-8 md:mb-10 border-b border-zinc-800 last:border-b-0 last:mb-0 pb-4">
+        <CountryMovieRow
+          country-slug="au-my"
+          title="Phim US-UK Mới"
+          :key="'au-my'"
+          :max-items="3"
+        />
       </div>
     </div>
   </section>

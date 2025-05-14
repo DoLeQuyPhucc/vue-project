@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col md:flex-row">
     <!-- Left column: Title and View All link (15%) -->
-    <div class="p-6 md:p-10 flex flex-col md:w-[15%]">
+    <div class="p-6 md:p-10 flex flex-col md:w-[20%]">
       <div>
-        <h3 class="text-2xl font-bold mb-1 leading-tight">
+        <h3 class="text-2xl md:text-[2.3rem] font-bold mb-2 leading-tight">
           <span :class="getTitleColor(countrySlug)">{{ getFirstPart(countrySlug) }}</span>
           <div>
             <span :class="getTitleColor(countrySlug)">{{ getSecondPart(countrySlug) }}</span>
@@ -14,7 +14,7 @@
 
       <router-link
         :to="`/quoc-gia/${countrySlug}`"
-        class="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors group mt-3 text-sm"
+        class="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors group mt-3 text-base"
       >
         Xem toàn bộ
         <svg
@@ -32,14 +32,14 @@
       </router-link>
     </div>
 
-    <!-- Right column: Movie carousel (85%) -->
-    <div class="md:w-[85%] relative p-4 md:p-6">
+    <!-- Right column: Movie carousel (80%) -->
+    <div class="md:w-[80%] relative p-4 md:p-6">
       <!-- Loading state -->
-      <div v-if="loading" class="flex overflow-x-auto gap-3 hide-scrollbar">
-        <div v-for="i in 5" :key="i" class="flex-shrink-0 w-[220px]">
+      <div v-if="loading" class="flex overflow-x-auto gap-4 hide-scrollbar">
+        <div v-for="i in maxItems" :key="i" class="flex-shrink-0 w-[280px]">
           <div class="bg-zinc-800 rounded-lg aspect-video animate-pulse mb-2"></div>
-          <div class="h-4 bg-zinc-800 rounded animate-pulse mb-1 w-3/4"></div>
-          <div class="h-3 bg-zinc-800 rounded animate-pulse w-1/2"></div>
+          <div class="h-5 bg-zinc-800 rounded animate-pulse mb-1 w-3/4"></div>
+          <div class="h-4 bg-zinc-800 rounded animate-pulse w-1/2"></div>
         </div>
       </div>
 
@@ -53,7 +53,7 @@
         <!-- Navigation arrows -->
         <button
           @click="scroll(-1)"
-          class="absolute top-1/2 left-2 z-10 transform -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none"
+          class="absolute top-1/2 left-2 z-10 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none"
           :disabled="scrollPosition <= 0"
           :class="{ 'opacity-50 cursor-not-allowed': scrollPosition <= 0 }"
         >
@@ -73,7 +73,7 @@
 
         <button
           @click="scroll(1)"
-          class="absolute top-1/2 right-2 z-10 transform -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none"
+          class="absolute top-1/2 right-2 z-10 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none"
           :disabled="scrollPosition >= maxScroll"
           :class="{ 'opacity-50 cursor-not-allowed': scrollPosition >= maxScroll }"
         >
@@ -99,16 +99,18 @@
         <!-- Movie carousel -->
         <div
           ref="scrollContainer"
-          class="flex overflow-x-auto gap-3 hide-scrollbar"
+          class="flex overflow-x-auto gap-4 hide-scrollbar py-2"
           @scroll="handleScroll"
         >
           <router-link
-            v-for="movie in movies"
+            v-for="(movie, index) in displayedMovies"
             :key="movie._id"
             :to="`/phim/${movie.slug}`"
-            class="flex-shrink-0 w-[220px] group"
+            class="flex-shrink-0 w-[280px] group"
           >
-            <div class="relative aspect-video overflow-hidden rounded-lg mb-2 bg-zinc-800">
+            <div
+              class="relative aspect-video overflow-hidden rounded-lg mb-3 bg-zinc-800 shadow-md"
+            >
               <img
                 :src="getImageUrl(movie.thumb_url)"
                 :alt="movie.name"
@@ -119,13 +121,13 @@
               <div class="absolute bottom-2 left-2 flex gap-1.5">
                 <span
                   v-if="movie.quality"
-                  class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded"
+                  class="bg-red-600 text-white text-[11px] px-2 py-0.5 rounded"
                 >
                   PĐ. {{ movie.quality }}
                 </span>
                 <span
                   v-if="movie.lang && movie.lang.includes('Thuyết Minh')"
-                  class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded"
+                  class="bg-blue-600 text-white text-[11px] px-2 py-0.5 rounded"
                 >
                   TM. {{ movie.episode_current }}
                 </span>
@@ -133,11 +135,11 @@
             </div>
 
             <h3
-              class="text-sm font-medium text-white truncate group-hover:text-red-500 transition-colors"
+              class="text-base font-medium text-white truncate group-hover:text-red-500 transition-colors"
             >
               {{ movie.name }}
             </h3>
-            <div class="text-xs text-zinc-400 truncate">
+            <div class="text-sm text-zinc-400 truncate">
               {{ movie.origin_name }}
             </div>
           </router-link>
@@ -148,13 +150,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, defineProps } from 'vue'
+import { ref, onMounted, watch, defineProps, computed } from 'vue'
 import { getMoviesByCountry, type Movie } from '@/services/countryService'
 
-const props = defineProps<{
-  countrySlug: string
-  title: string
-}>()
+const props = defineProps({
+  countrySlug: {
+    type: String,
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  maxItems: {
+    type: Number,
+    default: 3,
+  },
+})
 
 const movies = ref<Movie[]>([])
 const loading = ref(true)
@@ -162,6 +174,10 @@ const error = ref<string | null>(null)
 const scrollContainer = ref<HTMLElement | null>(null)
 const scrollPosition = ref(0)
 const maxScroll = ref(0)
+
+const displayedMovies = computed(() => {
+  return movies.value.slice(0, props.maxItems)
+})
 
 function getFirstPart(slug: string): string {
   const parts: Record<string, string> = {
@@ -204,7 +220,7 @@ async function fetchMovies() {
     loading.value = true
     error.value = null
 
-    movies.value = await getMoviesByCountry(props.countrySlug, 10)
+    movies.value = await getMoviesByCountry(props.countrySlug, props.maxItems + 2) // Fetch a few extra for scrolling
 
     loading.value = false
   } catch (err) {
@@ -249,9 +265,6 @@ watch(
 
 onMounted(() => {
   fetchMovies()
-  if (scrollContainer.value) {
-    maxScroll.value = scrollContainer.value.scrollWidth - scrollContainer.value.clientWidth
-  }
 })
 </script>
 
