@@ -12,6 +12,11 @@
           class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-zinc-900 to-transparent z-10"
         ></div>
 
+        <!-- Bottom gradient overlay to blend with bg-zinc-900 - lighter version -->
+        <div
+          class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-zinc-900/100 to-transparent z-10"
+        ></div>
+
         <div class="absolute inset-0 w-full h-full">
           <img
             :src="movies[currentIndex].thumb_url"
