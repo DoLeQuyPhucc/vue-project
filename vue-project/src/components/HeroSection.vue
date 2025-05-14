@@ -4,7 +4,7 @@
     <div v-else-if="error" class="flex items-center justify-center h-[50vh] text-lg">
       {{ error }}
     </div>
-    <div v-else class="relative w-full h-[80vh] md:h-[100vh] max-h-[100vh] overflow-hidden">
+    <div v-else class="relative w-full h-[80vh] md:h-[100vh] max-h-[100vh] overflow-hidden z-[25]">
       <div class="w-full h-full overflow-hidden">
         <div
           class="flex w-full h-full transition-transform duration-500 ease-in-out"
@@ -101,7 +101,7 @@
         </div>
       </div>
       <!-- Hide thumbnails on mobile -->
-      <div class="hidden md:flex absolute bottom-20 right-6 gap-2.5 z-10">
+      <div class="hidden md:flex absolute bottom-20 right-6 gap-2.5 z-[40] pointer-events-auto">
         <div
           v-for="(movie, index) in displayedMovies"
           :key="movie._id"
@@ -117,7 +117,9 @@
         </div>
       </div>
       <!-- Indicator dots - larger touch targets on mobile -->
-      <div class="absolute bottom-4 md:bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
+      <div
+        class="absolute bottom-4 md:bottom-10 left-1/2 -translate-x-1/2 flex gap-2 z-[40] pointer-events-auto"
+      >
         <span
           v-for="(_, index) in displayedMovies"
           :key="index"
@@ -132,13 +134,13 @@
       <!-- Mobile navigation arrows -->
       <button
         @click="prevSlide"
-        class="absolute left-2 top-1/2 -translate-y-1/2 md:hidden bg-black/30 w-10 h-10 rounded-full flex items-center justify-center text-white"
+        class="absolute left-2 top-1/2 -translate-y-1/2 md:hidden bg-black/30 w-10 h-10 rounded-full flex items-center justify-center text-white z-[40] pointer-events-auto"
       >
         <font-awesome-icon :icon="['fas', 'chevron-left']" />
       </button>
       <button
         @click="nextSlide"
-        class="absolute right-2 top-1/2 -translate-y-1/2 md:hidden bg-black/30 w-10 h-10 rounded-full flex items-center justify-center text-white"
+        class="absolute right-2 top-1/2 -translate-y-1/2 md:hidden bg-black/30 w-10 h-10 rounded-full flex items-center justify-center text-white z-[40] pointer-events-auto"
       >
         <font-awesome-icon :icon="['fas', 'chevron-right']" />
       </button>
@@ -222,6 +224,7 @@ export default {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -229,6 +232,7 @@ export default {
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
