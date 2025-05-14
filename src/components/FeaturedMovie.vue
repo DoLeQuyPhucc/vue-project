@@ -72,8 +72,6 @@
                 <button
                   @click="prevSlide"
                   class="absolute -left-2 top-1/2 z-10 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none"
-                  :disabled="currentIndex <= 0"
-                  :class="{ 'opacity-50 cursor-not-allowed': currentIndex <= 0 }"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -89,39 +87,37 @@
                   </svg>
                 </button>
 
-                <div
-                  class="flex overflow-x-auto gap-4 p-4 hide-scrollbar justify-center md:justify-start"
-                >
+                <div class="carousel-container">
                   <div
-                    v-for="(movie, index) in movies.slice(0, 5)"
-                    :key="movie._id"
-                    @click="currentIndex = index"
-                    class="flex-shrink-0 relative cursor-pointer transition-all duration-300 transform hover:scale-105"
-                    :class="index === currentIndex ? 'scale-105' : 'opacity-80'"
+                    class="carousel-slide"
+                    :style="{ transform: `translateX(${-currentIndex * (220 + 16)}px)` }"
+                    ref="carouselSlide"
                   >
                     <div
-                      class="w-[160px] md:w-[180px] h-[240px] md:h-[270px] rounded-lg overflow-hidden shadow-lg"
+                      v-for="(movie, index) in visibleMovies"
+                      :key="movie._id"
+                      @click="goToSlide(index)"
+                      class="carousel-item transition-all duration-300 transform hover:scale-105"
+                      :class="index === currentIndex ? 'scale-105' : 'opacity-80'"
                     >
-                      <img
-                        :src="movie.poster_url || movie.thumb_url"
-                        :alt="movie.name"
-                        class="w-full h-full object-cover"
-                      />
+                      <div class="poster-container rounded-lg overflow-hidden shadow-lg">
+                        <img
+                          :src="movie.poster_url || movie.thumb_url"
+                          :alt="movie.name"
+                          class="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div
+                        v-if="index === currentIndex"
+                        class="absolute bottom-0 left-0 right-0 h-1 bg-red-600"
+                      ></div>
                     </div>
-                    <div
-                      v-if="index === currentIndex"
-                      class="absolute bottom-0 left-0 right-0 h-1 bg-red-600"
-                    ></div>
                   </div>
                 </div>
 
                 <button
                   @click="nextSlide"
                   class="absolute -right-2 top-1/2 z-10 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none"
-                  :disabled="currentIndex >= Math.min(movies.length - 1, 4)"
-                  :class="{
-                    'opacity-50 cursor-not-allowed': currentIndex >= Math.min(movies.length - 1, 4),
-                  }"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -146,7 +142,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { getLatestMovies } from '../services/movieService'
 
 export default {
@@ -155,6 +151,13 @@ export default {
     const loading = ref(true)
     const error = ref(null)
     const currentIndex = ref(0)
+    const carouselSlide = ref(null)
+
+    // Ensure we have enough movies visible for the carousel
+    const visibleMovies = computed(() => {
+      // Return all movies, not just the first 5
+      return movies.value
+    })
 
     const fetchMovies = async () => {
       try {
@@ -169,15 +172,25 @@ export default {
       }
     }
 
+    const goToSlide = (index) => {
+      currentIndex.value = index
+    }
+
     const prevSlide = () => {
       if (currentIndex.value > 0) {
         currentIndex.value--
+      } else {
+        // Loop to the end
+        currentIndex.value = movies.value.length - 1
       }
     }
 
     const nextSlide = () => {
-      if (currentIndex.value < Math.min(movies.value.length - 1, 4)) {
+      if (currentIndex.value < movies.value.length - 1) {
         currentIndex.value++
+      } else {
+        // Loop back to start
+        currentIndex.value = 0
       }
     }
 
@@ -187,9 +200,12 @@ export default {
 
     return {
       movies,
+      visibleMovies,
       loading,
       error,
       currentIndex,
+      carouselSlide,
+      goToSlide,
       prevSlide,
       nextSlide,
     }
@@ -206,5 +222,39 @@ export default {
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
+}
+
+.carousel-container {
+  width: 100%;
+  overflow: hidden;
+  padding: 1rem 0;
+  position: relative;
+}
+
+.carousel-slide {
+  display: flex;
+  gap: 1rem;
+  transition: transform 0.5s ease;
+  will-change: transform;
+  min-width: max-content; /* Ensure all items are rendered */
+}
+
+.carousel-item {
+  flex: 0 0 auto;
+  position: relative;
+  cursor: pointer;
+}
+
+.poster-container {
+  width: 220px;
+  height: 330px;
+}
+
+/* For screens large enough to show 2.5 items */
+@media (min-width: 768px) {
+  .carousel-container {
+    width: calc(220px * 2.5 + 1rem);
+    margin: 0 auto;
+  }
 }
 </style>
