@@ -1,12 +1,17 @@
 <template>
-  <div class="relative w-full overflow-hidden my-10">
+  <div class="relative w-full overflow-hidden">
     <div v-if="loading" class="flex items-center justify-center h-[50vh] text-lg">Loading...</div>
     <div v-else-if="error" class="flex items-center justify-center h-[50vh] text-lg">
       {{ error }}
     </div>
     <div v-else-if="movies.length > 0" class="relative">
       <!-- Background image (full screen) -->
-      <div class="relative h-[80vh] overflow-hidden">
+      <div class="relative h-[80vh] md:h-[100vh] max-h-[100vh] overflow-hidden">
+        <!-- Top gradient overlay to blend with MovieHotCountry -->
+        <div
+          class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-zinc-900 to-transparent z-10"
+        ></div>
+
         <div class="absolute inset-0 w-full h-full">
           <img
             :src="movies[currentIndex].thumb_url"
@@ -17,7 +22,7 @@
 
         <!-- Content overlay (centered) -->
         <div
-          class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"
+          class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent"
         ></div>
 
         <!-- Main content -->
