@@ -9,8 +9,8 @@ const routes = [
       { path: '', name: 'home', component: () => import('@/views/Home.vue') },
       { path: 'search', name: 'search', component: () => import('@/views/Search.vue') },
       {
-        path: 'movie/:id',
-        name: 'movie-detail',
+        path: 'movie/:slug',
+        name: 'MovieDetail',
         component: () => import('@/views/MovieDetail.vue'),
       },
       {
@@ -31,18 +31,7 @@ const routes = [
       },
     ],
   },
-  {
-    path: '/',
-    component: () => import('@/layouts/AuthLayout.vue'),
-    children: [
-      {
-        path: 'login',
-        name: 'login',
-        component: () => import('@/views/Login.vue'),
-        meta: { requiresGuest: true },
-      },
-    ],
-  },
+  
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
@@ -56,10 +45,18 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  // Always set document title to LoPhim regardless of route
+  document.title = 'LoPhim'
+  
   const auth = useAuthStore()
-  if (to.meta.requiresAuth && !auth.isLoggedIn) next('/login')
-  else if (to.meta.requiresGuest && auth.isLoggedIn) next('/')
+  if (to.meta.requiresAuth && !auth.isLoggedIn) {
+    toggleLoginModal()
+  } else if (to.meta.requiresGuest && auth.isLoggedIn) next('/')
   else next()
 })
 
 export default router
+function toggleLoginModal() {
+  throw new Error('Function not implemented.')
+}
+

@@ -98,21 +98,7 @@
       >
     </div>
 
-    <!-- Auth buttons -->
-    <div class="hidden md:flex items-center gap-4 ml-4">
-      <template v-if="auth.isLoggedIn">
-        <span class="text-sm text-zinc-300">👤 {{ auth.user.email }}</span>
-        <button
-          class="border border-red-600 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-          @click="logout"
-        >
-          Logout
-        </button>
-      </template>
-      <template v-else>
-        <router-link to="/login" class="text-white hover:text-red-500">Login</router-link>
-      </template>
-    </div>
+    <!-- Auth buttons section has been removed -->
   </header>
 </template>
 
