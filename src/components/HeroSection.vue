@@ -1,6 +1,29 @@
 <template>
   <div class="relative w-full overflow-hidden mb-0">
-    <div v-if="loading" class="flex items-center justify-center h-[50vh] text-lg">Loading...</div>
+    <div v-if="loading" class="hero-skeleton">
+      <!-- Skeleton loader for hero section -->
+      <div class="h-[80vh] md:h-[100vh] w-full bg-zinc-800 animate-pulse">
+        <div class="absolute bottom-0 left-0 w-full p-4 md:p-8 pt-16 pb-8 md:pb-16">
+          <div class="max-w-3xl">
+            <div class="h-8 md:h-10 bg-zinc-700 rounded w-3/4 mb-4 animate-pulse"></div>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <div class="h-4 w-16 bg-zinc-700 rounded animate-pulse"></div>
+              <div class="h-4 w-20 bg-zinc-700 rounded animate-pulse"></div>
+              <div class="h-4 w-24 bg-zinc-700 rounded animate-pulse"></div>
+            </div>
+            <div class="space-y-2 mb-6">
+              <div class="h-3 bg-zinc-700 rounded w-full animate-pulse"></div>
+              <div class="h-3 bg-zinc-700 rounded w-5/6 animate-pulse"></div>
+              <div class="h-3 bg-zinc-700 rounded w-4/6 animate-pulse"></div>
+            </div>
+            <div class="flex gap-3">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-zinc-700 animate-pulse"></div>
+              <div class="w-20 h-10 md:w-24 md:h-12 rounded-full bg-zinc-700 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div v-else-if="error" class="flex items-center justify-center h-[50vh] text-lg">
       {{ error }}
     </div>
@@ -12,15 +35,19 @@
         >
           <div v-for="movie in displayedMovies" :key="movie._id" class="flex-none w-full h-full">
             <div class="relative w-full h-full overflow-hidden">
+              <!-- Optimize mobile image loading with lazy loading -->
               <img
                 :src="movie.poster_url || movie.thumb_url"
                 :alt="movie.name"
                 class="w-full h-full object-cover md:hidden"
+                loading="lazy"
               />
+              <!-- Optimize desktop image with lazy loading -->
               <img
                 :src="movie.thumb_url"
                 :alt="movie.name"
                 class="w-full h-full object-cover hidden md:block"
+                loading="lazy"
               />
               <div
                 class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/95 via-black/70 to-transparent text-white p-4 md:p-8 pt-16 pb-8 md:pb-16"
@@ -100,7 +127,8 @@
           </div>
         </div>
       </div>
-      <!-- Hide thumbnails on mobile -->
+
+      <!-- Thumbnails with lazy loading -->
       <div class="hidden md:flex absolute bottom-20 right-6 gap-2.5 z-[40] pointer-events-auto">
         <div
           v-for="(movie, index) in displayedMovies"
@@ -113,10 +141,11 @@
           ]"
           @click="currentIndex = index"
         >
-          <img :src="movie.thumb_url" :alt="movie.name" class="w-full h-full object-cover" />
+          <img :src="movie.thumb_url" :alt="movie.name" class="w-full h-full object-cover" loading="lazy" />
         </div>
       </div>
-      <!-- Indicator dots - larger touch targets on mobile -->
+
+      <!-- Navigation controls -->
       <div
         class="absolute bottom-4 md:bottom-10 left-1/2 -translate-x-1/2 flex gap-2 z-[40] pointer-events-auto"
       >
@@ -159,6 +188,7 @@ import {
   faChevronRight,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { refreshCacheInBackground } from '../utils/apiUtils'
 
 // Add the icons to the library
 library.add(faPlay, faHeart, faInfo, faChevronLeft, faChevronRight)
@@ -184,15 +214,36 @@ export default {
     async fetchMovies() {
       try {
         this.loading = true
+        // Using the cached API call (will return cached data if available)
         const response = await getLatestMovies()
         this.movies = response.items
         this.loading = false
+        
+        // After component is mounted, refresh the cache in background
+        this.$nextTick(() => {
+          this.refreshDataInBackground()
+        })
       } catch (error) {
         this.error = 'Failed to load movies'
         this.loading = false
         console.error(error)
       }
     },
+    
+    async refreshDataInBackground() {
+      // This will update the cache without affecting the current UI
+      // unless the data has changed
+      try {
+        const response = await refreshCacheInBackground(getLatestMovies, 'latest_movies')
+        // Only update UI if we got new data and it's different
+        if (response && JSON.stringify(response.items) !== JSON.stringify(this.movies)) {
+          this.movies = response.items
+        }
+      } catch (error) {
+        console.error('Background refresh failed:', error)
+      }
+    },
+    
     prevSlide() {
       this.currentIndex =
         (this.currentIndex - 1 + this.displayedMovies.length) % this.displayedMovies.length
@@ -203,7 +254,6 @@ export default {
   },
   mounted() {
     this.fetchMovies()
-    // Auto slide removed as requested
   },
 }
 </script>
@@ -218,6 +268,24 @@ export default {
   .text-5xl {
     font-size: 2rem;
   }
+}
+
+/* Skeleton animation */
+.hero-skeleton {
+  position: relative;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Add line-clamp utility if not using Tailwind's line-clamp plugin */

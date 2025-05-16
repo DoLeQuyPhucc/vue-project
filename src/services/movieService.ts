@@ -1,4 +1,5 @@
 import axiosInstance from './axiosInstance'
+import { createCachedApiCall } from '../utils/apiUtils'
 
 export interface Movie {
   _id: string
@@ -98,22 +99,47 @@ export interface MovieDetailResponse {
   episodes: ServerData[]
 }
 
-export const getLatestMovies = async (page = 1): Promise<MovieResponse> => {
+// Base API functions (without caching)
+const fetchLatestMovies = async (page = 1): Promise<MovieResponse> => {
   const response = await axiosInstance.get(`/danh-sach/phim-moi-cap-nhat-v3?page=${page}`)
   return response.data
 }
 
-export const getMovieDetail = async (slug: string): Promise<MovieDetailResponse> => {
+const fetchMovieDetail = async (slug: string): Promise<MovieDetailResponse> => {
   const response = await axiosInstance.get(`/phim/${slug}`)
   return response.data
 }
 
-export const getFilmBo = async () => {
+const fetchFilmBo = async () => {
   const response = await axiosInstance.get('v1/api/danh-sach/phim-bo')
   return response.data
 }
 
-export const getFilmLe = async () => {
+const fetchFilmLe = async () => {
   const response = await axiosInstance.get('v1/api/danh-sach/phim-le')
   return response.data
 }
+
+// Cached API functions
+export const getLatestMovies = createCachedApiCall(fetchLatestMovies, {
+  key: 'latest_movies',
+  expiry: 5 * 60 * 1000, // 5 minutes cache
+})
+
+// For movie detail, we need dynamic key based on the movie slug
+export const getMovieDetail = (slug: string) => {
+  return createCachedApiCall(() => fetchMovieDetail(slug), {
+    key: `movie_detail_${slug}`,
+    expiry: 30 * 60 * 1000, // 30 minutes cache for movie details
+  })()
+}
+
+export const getFilmBo = createCachedApiCall(fetchFilmBo, {
+  key: 'film_bo',
+  expiry: 15 * 60 * 1000, // 15 minutes cache
+})
+
+export const getFilmLe = createCachedApiCall(fetchFilmLe, {
+  key: 'film_le',
+  expiry: 15 * 60 * 1000, // 15 minutes cache
+})

@@ -5,6 +5,7 @@ import MovieHotCountry from '@/components/MovieHotCountry.vue'
 import FeaturedMovie from '@/components/FeaturedMovie.vue'
 import FilmSeriesCarousel from '@/components/FilmSeriesCarousel.vue'
 import FilmMovieCarousel from '@/components/FilmMovieCarousel.vue'
+import LazyLoader from '@/components/LazyLoader.vue'
 import { ref, watch } from 'vue'
 
 // Login and register modal state
@@ -474,6 +475,7 @@ const switchToLogin = () => {
       </div>
     </div>
 
+    <!-- First section always visible, not lazy loaded -->
     <div class="relative">
       <HeroSection />
 
@@ -484,13 +486,38 @@ const switchToLogin = () => {
     </div>
 
     <div class="content-section relative">
-      <CategoryGrid />
+      <!-- Use LazyLoader for CategoryGrid with custom placeholder -->
+      <LazyLoader>
+        <template #placeholder>
+          <div class="w-full py-10">
+            <div class="max-w-6xl mx-auto px-4">
+              <div class="h-8 bg-zinc-800 w-1/3 rounded mb-4 animate-pulse"></div>
+              <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div class="aspect-square rounded bg-zinc-800 animate-pulse" v-for="n in 6" :key="n"></div>
+              </div>
+            </div>
+          </div>
+        </template>
+        <CategoryGrid />
+      </LazyLoader>
 
       <!-- Wrapper to connect MovieHotCountry and FeaturedMovie -->
       <div class="relative">
         <!-- MovieHotCountry component -->
         <div class="relative z-10 mb-12">
-          <MovieHotCountry />
+          <LazyLoader rootMargin="400px 0px">
+            <template #placeholder>
+              <div class="w-full py-8">
+                <div class="max-w-6xl mx-auto px-4">
+                  <div class="h-8 bg-zinc-800 w-1/3 rounded mb-4 animate-pulse"></div>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="aspect-video rounded bg-zinc-800 animate-pulse" v-for="n in 3" :key="n"></div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <MovieHotCountry />
+          </LazyLoader>
         </div>
 
         <!-- Enhanced gradient overlay for smoother transition -->
@@ -500,14 +527,36 @@ const switchToLogin = () => {
 
         <!-- FeaturedMovie with negative margin to create overlap -->
         <div class="relative -mt-16 z-10">
-          <FeaturedMovie />
+          <LazyLoader rootMargin="300px 0px">
+            <template #placeholder>
+              <div class="w-full py-12">
+                <div class="max-w-6xl mx-auto px-4">
+                  <div class="h-8 bg-zinc-800 w-1/3 rounded mb-4 animate-pulse"></div>
+                  <div class="h-[400px] rounded bg-zinc-800 animate-pulse"></div>
+                </div>
+              </div>
+            </template>
+            <FeaturedMovie />
+          </LazyLoader>
         </div>
         
         <!-- Film Series Section with visual connection -->
         <div class="relative">
           <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-zinc-900 to-transparent z-0"></div>
           <div class="relative z-10 mt-8">
-            <FilmSeriesCarousel />
+            <LazyLoader rootMargin="200px 0px">
+              <template #placeholder>
+                <div class="w-full py-10">
+                  <div class="max-w-6xl mx-auto px-4">
+                    <div class="h-8 bg-zinc-800 w-1/3 rounded mb-4 animate-pulse"></div>
+                    <div class="flex overflow-x-auto gap-4 pb-4 hide-scrollbar">
+                      <div class="flex-none w-[280px] h-[180px] rounded bg-zinc-800 animate-pulse" v-for="n in 5" :key="n"></div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <FilmSeriesCarousel />
+            </LazyLoader>
           </div>
         </div>
         
@@ -515,7 +564,19 @@ const switchToLogin = () => {
         <div class="relative">
           <div class="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-zinc-900/70 to-transparent z-0"></div>
           <div class="relative z-10 mt-4">
-            <FilmMovieCarousel />
+            <LazyLoader rootMargin="200px 0px">
+              <template #placeholder>
+                <div class="w-full py-10">
+                  <div class="max-w-6xl mx-auto px-4">
+                    <div class="h-8 bg-zinc-800 w-1/3 rounded mb-4 animate-pulse"></div>
+                    <div class="flex overflow-x-auto gap-4 pb-4 hide-scrollbar">
+                      <div class="flex-none w-[280px] h-[400px] rounded bg-zinc-800 animate-pulse" v-for="n in 5" :key="n"></div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <FilmMovieCarousel />
+            </LazyLoader>
           </div>
         </div>
       </div>
@@ -526,6 +587,30 @@ const switchToLogin = () => {
 <style scoped>
 .content-section {
   padding-top: 0; /* Remove top padding since we have the gradient overlap */
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Skeleton animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Modal animation */
