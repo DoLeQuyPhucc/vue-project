@@ -3,19 +3,30 @@
     <div class="container mx-auto max-w-7xl px-4">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl md:text-3xl font-bold text-white">Phim Lẻ</h2>
-        <router-link 
+        <router-link
           to="/danh-sach/phim-le"
           class="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition"
         >
           <span>Xem toàn bộ</span>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+              clip-rule="evenodd"
+            />
           </svg>
         </router-link>
       </div>
 
       <div v-if="loading" class="flex items-center justify-center h-[40vh] text-lg">Loading...</div>
-      <div v-else-if="error" class="flex items-center justify-center h-[40vh] text-lg">{{ error }}</div>
+      <div v-else-if="error" class="flex items-center justify-center h-[40vh] text-lg">
+        {{ error }}
+      </div>
       <div v-else-if="movies.length > 0" class="relative">
         <!-- Navigation arrows -->
         <button
@@ -37,7 +48,7 @@
         </button>
 
         <div class="carousel-container">
-          <div 
+          <div
             class="carousel-slide"
             :style="{ transform: `translateX(${-currentIndex * (220 + 16)}px)` }"
           >
@@ -53,8 +64,12 @@
                     :alt="movie.name"
                     class="w-full h-full object-cover"
                   />
-                  <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                    <div class="badge bg-blue-600 inline-block px-2 py-1 text-xs text-white rounded mb-2 w-max">
+                  <div
+                    class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3"
+                  >
+                    <div
+                      class="badge bg-blue-600 inline-block px-2 py-1 text-xs text-white rounded mb-2 w-max"
+                    >
                       {{ movie.quality }}
                     </div>
                     <div class="text-white font-semibold truncate">{{ movie.name }}</div>
@@ -93,7 +108,18 @@
 import { ref, onMounted } from 'vue'
 import { getFilmLe } from '../services/movieService'
 
-const movies = ref([])
+interface Movie {
+  _id: string
+  slug: string
+  name: string
+  origin_name: string
+  poster_url?: string
+  thumb_url?: string
+  quality: string
+  time?: string
+}
+
+const movies = ref<Movie[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const currentIndex = ref(0)
@@ -177,4 +203,4 @@ onMounted(() => {
     height: 330px;
   }
 }
-</style> 
+</style>
