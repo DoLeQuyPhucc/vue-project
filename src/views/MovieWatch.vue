@@ -106,6 +106,9 @@
               :src="currentEpisode.link_embed"
               class="w-full h-full"
               allowfullscreen
+              allow="encrypted-media"
+              referrerpolicy="origin"
+              sandbox="allow-scripts allow-same-origin allow-forms"
               frameborder="0"
               ref="videoPlayer"
               @load="onVideoLoad"
@@ -213,68 +216,118 @@
         </div>
 
         <!-- Movie details -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
-          <!-- Left column: Movie info -->
-          <div class="md:col-span-2">
-            <h2 class="text-xl md:text-2xl font-bold mb-3 md:mb-4">{{ movie.name }}</h2>
-            <div class="flex flex-wrap gap-1.5 md:gap-2 mb-4 md:mb-6">
-              <span
-                v-for="(category, idx) in movie.category"
-                :key="idx"
-                class="inline-flex items-center bg-zinc-800/50 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-xs md:text-sm cursor-pointer hover:bg-zinc-700 transition"
-                @click="goToCategory(category)"
-              >
-                {{ category.name }}
-              </span>
-              <span
-                class="inline-flex items-center bg-zinc-800/50 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-xs md:text-sm"
-              >
-                {{ movie.year }}
-              </span>
-              <span
-                class="inline-flex items-center bg-zinc-800/50 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-xs md:text-sm"
-              >
-                {{ movie.time }}
-              </span>
-            </div>
-
-            <div class="mb-4 md:mb-6">
-              <h3 class="text-base md:text-lg font-semibold mb-1 md:mb-2">Tóm tắt nội dung</h3>
-              <p class="text-zinc-300 leading-relaxed text-sm md:text-base">{{ movie.content }}</p>
+        <div class="flex flex-col">
+          <!-- Movie title and rating -->
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex flex-col">
+              <h1 class="text-2xl font-bold">{{ movie.name }}</h1>
+              <p class="text-gray-400 mt-2">{{ movie.origin_name }}</p>
+              <p class="text-gray-400">{{ movie.content }}</p>
             </div>
           </div>
 
-          <!-- Right column: Cast & crew -->
-          <div>
-            <div class="bg-zinc-800/50 backdrop-blur-sm rounded-xl p-3 md:p-4 mb-4 md:mb-6">
-              <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4">Diễn viên</h3>
-              <div v-if="movie.actor && movie.actor.length > 0">
-                <div
-                  v-for="(actor, index) in movie.actor"
-                  :key="index"
-                  class="mb-1 md:mb-2 last:mb-0"
-                >
-                  <div class="text-sm md:text-base text-white">{{ actor }}</div>
+          <!-- Movie info and cast -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left column: Movie info -->
+            <div class="lg:col-span-2">
+              <div class="bg-zinc-800/50 rounded-xl p-4 mb-6">
+                <h3 class="text-lg font-semibold mb-4">Thông tin phim</h3>
+                <div class="flex gap-6">
+                  <!-- Movie poster -->
+                  <div class="flex-shrink-0">
+                    <img
+                      :src="movie.poster_url"
+                      :alt="movie.name"
+                      class="w-48 h-72 object-cover rounded-lg"
+                    />
+                  </div>
+
+                  <!-- Movie details -->
+                  <div class="flex-grow">
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <p class="text-gray-400 mb-2">
+                          Trạng thái: <span class="text-white">{{ movie.episode_current }}</span>
+                        </p>
+                        <p class="text-gray-400 mb-2">
+                          Thời lượng: <span class="text-white">{{ movie.time }}</span>
+                        </p>
+                        <p class="text-gray-400 mb-2">
+                          Năm phát hành: <span class="text-white">{{ movie.year }}</span>
+                        </p>
+                        <p class="text-gray-400 mb-2">
+                          Quốc gia: <span class="text-white">{{ movie.country?.[0]?.name }}</span>
+                        </p>
+                      </div>
+                      <div>
+                        <p class="text-gray-400 mb-2">Thể loại:</p>
+                        <div class="flex flex-wrap gap-2">
+                          <span
+                            v-for="category in movie.category"
+                            :key="category.id"
+                            class="text-white bg-zinc-700 px-2 py-1 rounded-full text-sm"
+                          >
+                            {{ category.name }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div v-else class="text-sm md:text-base text-zinc-500">
-                Không có thông tin diễn viên
+
+              <!-- Server Selection -->
+              <div class="bg-zinc-800/50 rounded-xl p-4 mb-6">
+                <h3 class="text-lg font-semibold mb-4">Chọn server</h3>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="(server, index) in movie.episodes"
+                    :key="index"
+                    class="px-4 py-2 rounded-lg text-sm transition-colors"
+                    :class="[
+                      currentServer === index
+                        ? 'bg-red-600 text-white'
+                        : 'bg-zinc-700 hover:bg-zinc-600 text-white',
+                    ]"
+                    @click="changeServer(index)"
+                  >
+                    Server #{{ index + 1 }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Comments section -->
+              <div class="bg-zinc-800/50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-semibold">Bình luận</h3>
+                  <div class="flex items-center">
+                    <font-awesome-icon :icon="['fas', 'comment']" class="mr-2" />
+                    <span>{{ movie.comment_count || 0 }}</span>
+                  </div>
+                </div>
+                <!-- Comment form placeholder -->
+                <div class="bg-zinc-700/50 rounded-lg p-4 text-center text-gray-400">
+                  Tính năng bình luận đang được phát triển
+                </div>
               </div>
             </div>
 
-            <div class="bg-zinc-800/50 backdrop-blur-sm rounded-xl p-3 md:p-4">
-              <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4">Đạo diễn</h3>
-              <div v-if="movie.director && movie.director.length > 0">
-                <div
-                  v-for="(director, index) in movie.director"
-                  :key="index"
-                  class="mb-1 md:mb-2 last:mb-0"
-                >
-                  <div class="text-sm md:text-base text-white">{{ director }}</div>
+            <!-- Right column: Cast -->
+            <div>
+              <div class="bg-zinc-800/50 rounded-xl p-4">
+                <h3 class="text-lg font-semibold mb-4">Diễn viên</h3>
+                <div class="space-y-4">
+                  <div v-if="movie.actor && movie.actor.length > 0">
+                    <div
+                      v-for="(actor, index) in movie.actor"
+                      :key="index"
+                      class="flex items-center gap-3 mb-3"
+                    >
+                      <div class="text-white">{{ actor }}</div>
+                    </div>
+                  </div>
+                  <div v-else class="text-gray-400">Không có thông tin diễn viên</div>
                 </div>
-              </div>
-              <div v-else class="text-sm md:text-base text-zinc-500">
-                Không có thông tin đạo diễn
               </div>
             </div>
           </div>
@@ -333,11 +386,21 @@ import {
   faTimes,
   faExclamationCircle,
   faPlayCircle,
+  faComment,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 // Add the icons to the library
-library.add(faPlay, faArrowLeft, faSpinner, faList, faTimes, faExclamationCircle, faPlayCircle)
+library.add(
+  faPlay,
+  faArrowLeft,
+  faSpinner,
+  faList,
+  faTimes,
+  faExclamationCircle,
+  faPlayCircle,
+  faComment,
+)
 
 // IndexedDB setup and helper functions
 const DB_NAME = 'movieWatchDB'
@@ -384,6 +447,7 @@ export default {
       savedWatchTime: 0,
       watchProgressInterval: null,
       currentWatchTime: 0,
+      currentServer: 0,
     }
   },
   computed: {
@@ -405,16 +469,8 @@ export default {
 
         // Get episodes from all servers
         if (response.episodes && response.episodes.length > 0) {
-          // Use the first server that has episodes
-          const firstServerWithEpisodes = response.episodes.find(
-            (server) => server.server_data && server.server_data.length > 0,
-          )
-
-          if (firstServerWithEpisodes) {
-            this.episodes = firstServerWithEpisodes.server_data
-            // Set first episode as current
-            await this.checkWatchProgress(this.episodes[0])
-          }
+          this.movie.episodes = response.episodes
+          this.loadEpisodesFromServer(this.currentServer)
         }
 
         this.loading = false
@@ -422,6 +478,18 @@ export default {
         this.error = 'Không thể tải dữ liệu phim'
         this.loading = false
         console.error(error)
+      }
+    },
+    loadEpisodesFromServer(serverIndex) {
+      if (this.movie.episodes && this.movie.episodes[serverIndex]) {
+        const server = this.movie.episodes[serverIndex]
+        if (server.server_data && server.server_data.length > 0) {
+          this.episodes = server.server_data
+          // Set first episode as current if no episode is selected
+          if (!this.currentEpisode) {
+            this.checkWatchProgress(this.episodes[0])
+          }
+        }
       }
     },
     async checkWatchProgress(episode) {
@@ -550,15 +618,62 @@ export default {
       const remainingSeconds = Math.floor(seconds % 60)
       return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
     },
+    changeServer(index) {
+      this.currentServer = index
+      this.loadEpisodesFromServer(index)
+    },
+    setupDevToolsProtection() {
+      // Disable right-click
+      document.addEventListener('contextmenu', (e) => {
+        if (e.target.closest('.bg-black.aspect-video')) {
+          e.preventDefault()
+        }
+      })
+
+      this.checkDevToolsStatus()
+    },
+
+    checkDevToolsStatus() {
+      // Try to detect if DevTools is open
+      const isDevToolsOpen =
+        window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160
+
+      // If player element exists and DevTools is detected as open
+      const playerContainer = document.querySelector('.bg-black.aspect-video')
+      if (playerContainer && isDevToolsOpen) {
+        // Add visual warning
+        if (!document.querySelector('.devtools-warning')) {
+          const warning = document.createElement('div')
+          warning.className =
+            'devtools-warning absolute inset-0 bg-black/90 z-50 flex items-center justify-center'
+          warning.innerHTML =
+            '<div class="text-center p-4"><p class="text-xl text-red-500 font-bold mb-2">Vui lòng đóng Developer Tools</p><p class="text-gray-300">Không thể phát video khi Developer Tools đang mở</p></div>'
+          playerContainer.appendChild(warning)
+        }
+      } else {
+        // Remove warning if DevTools is closed
+        const warning = document.querySelector('.devtools-warning')
+        if (warning) {
+          warning.remove()
+        }
+      }
+    },
   },
   mounted() {
     this.fetchMovie()
+    this.setupDevToolsProtection()
+
+    // Add event listener for window resize which might indicate DevTools opening
+    window.addEventListener('resize', this.checkDevToolsStatus)
   },
   beforeUnmount() {
     // Clean up interval when component is destroyed
     if (this.watchProgressInterval) {
       clearInterval(this.watchProgressInterval)
     }
+
+    // Remove event listeners
+    window.removeEventListener('resize', this.checkDevToolsStatus)
 
     // Save final progress before leaving
     if (this.currentWatchTime > 0) {

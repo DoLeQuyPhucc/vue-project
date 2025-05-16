@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getMovieDetail } from '@/services/movieService'
 import type { MovieDetailResponse, MovieDetail } from '@/services/movieService'
 
@@ -18,12 +18,12 @@ interface ServerData {
 
 // State cho dữ liệu phim và loading
 const route = useRoute()
+const router = useRouter()
 const movieData = ref<MovieDetail | null>(null)
 const episodes = ref<ServerData[]>([])
 const isLoading = ref(true)
 const error = ref<string | null>(null)
-const activeTab = ref('thongTin') // Tabs: thongTin, trailerPhim, xemPhim
-const selectedServer = ref(0)
+const activeTab = ref('thongTin') // Tabs: thongTin, trailerPhim
 
 // Lấy thông tin phim từ API
 const fetchMovieDetail = async () => {
@@ -36,7 +36,7 @@ const fetchMovieDetail = async () => {
     if (response.status) {
       movieData.value = response.movie
       episodes.value = response.episodes
-      document.title = 'LoPhim'
+      document.title = `LoPhim - ${response.movie.name}`
     } else {
       error.value = 'Không thể tải thông tin phim'
     }
@@ -65,11 +65,6 @@ const switchTab = (tab: string) => {
   activeTab.value = tab
 }
 
-// Chọn máy chủ phát video
-const selectServer = (index: number) => {
-  selectedServer.value = index
-}
-
 // Format năm phát hành
 const releaseYear = computed(() => {
   return movieData.value?.year || 'N/A'
@@ -93,16 +88,8 @@ const trailerYoutubeId = computed(() => {
 })
 
 // Convert episode data to user-friendly format
-const episodeList = computed(() => {
-  if (!episodes.value.length || selectedServer.value >= episodes.value.length) return []
-
-  return episodes.value[selectedServer.value].server_data.map((ep) => {
-    return {
-      name: ep.name,
-      slug: ep.slug,
-      link: ep.link_embed || ep.link_m3u8,
-    }
-  })
+const hasEpisodes = computed(() => {
+  return episodes.value.length > 0 && episodes.value.some(server => server.server_data.length > 0)
 })
 
 // Trạng thái phim (Đang chiếu, Hoàn thành, ...)
@@ -118,6 +105,13 @@ const movieStatus = computed(() => {
       return movieData.value.status
   }
 })
+
+// Chuyển hướng đến trang xem phim
+const navigateToWatch = () => {
+  if (movieData.value) {
+    router.push(`/xem-phim/${movieData.value.slug}`)
+  }
+}
 
 // Fetch data when component mounts
 onMounted(() => {
@@ -240,7 +234,7 @@ onMounted(() => {
 
               <!-- Watch button with enhanced styling -->
               <button
-                @click="switchTab('xemPhim')"
+                @click="navigateToWatch"
                 class="w-full bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white py-3 px-6 rounded-md mt-4 font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-red-700/30 hover:shadow-red-500/40 hover:translate-y-[-2px]"
               >
                 <svg
@@ -255,8 +249,13 @@ onMounted(() => {
                     clip-rule="evenodd"
                   />
                 </svg>
-                Xem Phim
+                <span>Xem Phim</span>
               </button>
+
+              <!-- Episode info if it's a series -->
+              <div v-if="hasEpisodes && movieData.type === 'series'" class="mt-2 text-center text-sm text-gray-400">
+                {{ episodes.length }} server - {{ movieData.episode_current }} tập
+              </div>
 
               <!-- Trailer button with enhanced styling -->
               <button
@@ -511,39 +510,6 @@ onMounted(() => {
               class="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-red-700 to-red-500"
             ></div>
           </button>
-          <button
-            @click="switchTab('xemPhim')"
-            class="px-6 py-3 font-medium transition-all duration-300 relative"
-            :class="activeTab === 'xemPhim' ? 'text-red-500' : 'text-gray-400 hover:text-white'"
-          >
-            <span class="flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              Xem phim
-            </span>
-            <div
-              v-if="activeTab === 'xemPhim'"
-              class="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-red-700 to-red-500"
-            ></div>
-          </button>
         </div>
 
         <div class="border-b border-zinc-800 mt-[-1px]"></div>
@@ -625,150 +591,6 @@ onMounted(() => {
                   />
                 </svg>
                 Không tìm thấy trailer cho phim này
-              </div>
-            </div>
-          </div>
-
-          <!-- Xem phim tab -->
-          <div v-else-if="activeTab === 'xemPhim'" class="watch-container">
-            <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 backdrop-blur-sm">
-              <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-6 w-6 text-red-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Xem phim {{ movieData.name }}
-              </h2>
-
-              <!-- Server selection with enhanced styling -->
-              <div v-if="episodes.length > 0" class="mb-6">
-                <h3 class="text-lg font-medium mb-3 flex items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
-                    />
-                  </svg>
-                  Chọn máy chủ:
-                </h3>
-                <div class="flex flex-wrap gap-2">
-                  <button
-                    v-for="(server, index) in episodes"
-                    :key="index"
-                    @click="selectServer(index)"
-                    class="px-4 py-2 rounded-lg transition-all duration-300 border"
-                    :class="
-                      selectedServer === index
-                        ? 'bg-gradient-to-r from-red-700 to-red-600 text-white border-red-500 shadow-lg shadow-red-700/20'
-                        : 'bg-zinc-800 text-gray-300 hover:bg-zinc-700 border-zinc-700 hover:border-zinc-600'
-                    "
-                  >
-                    <span class="flex items-center gap-2">
-                      <svg
-                        v-if="selectedServer === index"
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                      {{ server.server_name }}
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Episode selection with enhanced styling -->
-              <div v-if="episodeList.length > 0" class="mb-6">
-                <h3 class="text-lg font-medium mb-3 flex items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
-                    />
-                  </svg>
-                  {{ movieData.type === 'series' ? 'Danh sách tập:' : 'Chọn phim:' }}
-                </h3>
-                <div
-                  class="flex flex-wrap gap-2 p-4 bg-zinc-800/30 rounded-lg border border-zinc-800"
-                >
-                  <button
-                    v-for="(episode, index) in episodeList"
-                    :key="index"
-                    class="px-4 py-2 bg-zinc-800 hover:bg-red-600 text-gray-300 hover:text-white rounded-lg transition-all duration-300 border border-zinc-700 hover:border-red-500"
-                  >
-                    {{ episode.name }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- Video player with enhanced styling -->
-              <div
-                class="aspect-video w-full bg-zinc-900 rounded-lg flex items-center justify-center border border-zinc-800 shadow-xl overflow-hidden"
-              >
-                <div class="text-center p-10">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-16 w-16 mx-auto mb-4 text-red-500 opacity-80"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.5"
-                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.5"
-                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <p class="text-gray-400 text-lg">Nhấp vào một tập để bắt đầu xem phim</p>
-                  <p class="text-gray-500 text-sm mt-2">
-                    Chọn máy chủ phù hợp để có trải nghiệm xem tốt nhất
-                  </p>
-                </div>
               </div>
             </div>
           </div>
@@ -886,14 +708,12 @@ onMounted(() => {
 
 /* Film grain effect */
 .movie-description,
-.trailer-container,
-.watch-container {
+.trailer-container {
   position: relative;
 }
 
 .movie-description::before,
-.trailer-container::before,
-.watch-container::before {
+.trailer-container::before {
   content: '';
   position: absolute;
   top: 0;
