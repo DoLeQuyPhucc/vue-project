@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { getMovieDetail, MovieDetailResponse, MovieDetail } from '@/services/movieService'
+import { getMovieDetail } from '@/services/movieService'
+import type { MovieDetailResponse, MovieDetail } from '@/services/movieService'
+
+interface Episode {
+  name: string
+  slug: string
+  link_embed?: string
+  link_m3u8?: string
+}
+
+interface ServerData {
+  server_name: string
+  server_data: Episode[]
+}
 
 // State cho dữ liệu phim và loading
 const route = useRoute()
 const movieData = ref<MovieDetail | null>(null)
-const episodes = ref([])
+const episodes = ref<ServerData[]>([])
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 const activeTab = ref('thongTin') // Tabs: thongTin, trailerPhim, xemPhim
