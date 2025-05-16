@@ -7,6 +7,7 @@ import FilmSeriesCarousel from '@/components/FilmSeriesCarousel.vue'
 import FilmMovieCarousel from '@/components/FilmMovieCarousel.vue'
 import LazyLoader from '@/components/LazyLoader.vue'
 import { ref, watch } from 'vue'
+import AppFooter from '@/components/AppFooter.vue'
 
 // Login and register modal state
 const showLoginModal = ref(false)
@@ -25,11 +26,11 @@ const passwordMatchError = ref(false)
 // Watch showLoginModal to add/remove body class that controls background blur
 watch([showLoginModal, showRegisterModal], ([isLoginVisible, isRegisterVisible]) => {
   if (isLoginVisible || isRegisterVisible) {
-    document.body.classList.add('modal-open');
+    document.body.classList.add('modal-open')
   } else {
-    document.body.classList.remove('modal-open');
+    document.body.classList.remove('modal-open')
   }
-});
+})
 
 // Login functions
 const toggleLoginModal = () => {
@@ -56,18 +57,18 @@ const toggleConfirmPasswordVisibility = () => {
 
 const handleLogin = async () => {
   isLoading.value = true
-  
+
   try {
     // Simulate API request
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
     // Here you would authenticate with your backend
     console.log('Login attempt:', {
       email: email.value,
       password: password.value,
-      rememberMe: rememberMe.value
+      rememberMe: rememberMe.value,
     })
-    
+
     // Hide modal on success
     showLoginModal.value = false
   } catch (error) {
@@ -83,32 +84,31 @@ const handleRegister = async () => {
     passwordMatchError.value = true
     return
   }
-  
+
   passwordMatchError.value = false
   isLoading.value = true
-  
+
   try {
     // Simulate API request
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
     // Here you would register with your backend
     console.log('Register attempt:', {
       email: email.value,
       username: username.value,
       fullName: fullName.value,
-      password: password.value
+      password: password.value,
     })
-    
+
     // Hide modal on success
     showRegisterModal.value = false
-    
+
     // Clear form
     email.value = ''
     password.value = ''
     confirmPassword.value = ''
     username.value = ''
     fullName.value = ''
-    
   } catch (error) {
     console.error('Registration failed:', error)
   } finally {
@@ -128,13 +128,26 @@ const switchToLogin = () => {
 </script>
 
 <template>
-  <main class="relative overflow-hidden" :class="{ 'content-blurred': showLoginModal || showRegisterModal }">
+  <main
+    class="relative overflow-hidden"
+    :class="{ 'content-blurred': showLoginModal || showRegisterModal }"
+  >
     <!-- Login Button -->
-    <button 
-      @click="toggleLoginModal" 
+    <button
+      @click="toggleLoginModal"
       class="fixed top-5 right-5 z-50 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2.5 rounded-full shadow-lg transition-all hover:shadow-red-500/30 hover:scale-105 font-medium flex items-center gap-2"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
         <circle cx="9" cy="7" r="4"></circle>
         <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -144,7 +157,8 @@ const switchToLogin = () => {
     </button>
 
     <!-- Login Modal -->
-    <div v-if="showLoginModal" 
+    <div
+      v-if="showLoginModal"
       class="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
       @click="showLoginModal = false"
     >
@@ -152,26 +166,23 @@ const switchToLogin = () => {
       <div class="absolute inset-0">
         <div class="cinema-backdrop"></div>
       </div>
-      
+
       <!-- Theater screen with projector effect -->
-      <div 
-        class="projector-container relative z-20"
-        @click.stop
-      >
+      <div class="projector-container relative z-20" @click.stop>
         <!-- Projector light beam effect -->
         <div class="projector-beam"></div>
-        
+
         <!-- Screen frame -->
         <div class="login-screen">
           <!-- Screen curtains -->
           <div class="curtain-left"></div>
           <div class="curtain-right"></div>
-          
+
           <!-- Login card styled as movie screen -->
           <div class="screen-content relative">
             <!-- Content glow effect -->
             <div class="screen-glow"></div>
-            
+
             <!-- Motion picture rating style header -->
             <div class="movie-rating">
               <div class="rating-box">
@@ -185,46 +196,42 @@ const switchToLogin = () => {
                 <p>KHÁN GIẢ CẦN ĐĂNG NHẬP</p>
               </div>
             </div>
-            
+
             <!-- Login form in cinematic style -->
             <form @submit.prevent="handleLogin" class="movie-form">
               <!-- Email field styled as movie credits -->
               <div class="form-field">
                 <label for="email" class="field-label">ĐỊA CHỈ EMAIL</label>
                 <div class="input-container">
-                  <input 
-                    type="email" 
-                    id="email" 
-                    v-model="email" 
+                  <input
+                    type="email"
+                    id="email"
+                    v-model="email"
                     placeholder="email@example.com"
                     required
                   />
                   <div class="field-effect"></div>
                 </div>
               </div>
-              
+
               <!-- Password field styled as director credit -->
               <div class="form-field">
                 <label for="password" class="field-label">MẬT KHẨU</label>
                 <div class="input-container">
-                  <input 
-                    :type="showPassword ? 'text' : 'password'" 
-                    id="password" 
+                  <input
+                    :type="showPassword ? 'text' : 'password'"
+                    id="password"
                     v-model="password"
                     placeholder="••••••••"
                     required
                   />
-                  <button 
-                    type="button"
-                    class="eye-icon"
-                    @click="togglePasswordVisibility"
-                  >
+                  <button type="button" class="eye-icon" @click="togglePasswordVisibility">
                     <div class="eye" :class="{ 'eye-closed': !showPassword }"></div>
                   </button>
                   <div class="field-effect"></div>
                 </div>
               </div>
-              
+
               <!-- Remember me styled as movie choice -->
               <div class="movie-options">
                 <label class="ticket-option">
@@ -234,13 +241,9 @@ const switchToLogin = () => {
                 </label>
                 <a href="#" class="forgot-password">Quên mật khẩu?</a>
               </div>
-              
+
               <!-- Login button styled as movie ticket -->
-              <button 
-                type="submit" 
-                class="movie-ticket-btn"
-                :disabled="isLoading"
-              >
+              <button type="submit" class="movie-ticket-btn" :disabled="isLoading">
                 <div class="ticket-inner">
                   <div class="ticket-holes"></div>
                   <div class="ticket-content">
@@ -253,7 +256,7 @@ const switchToLogin = () => {
                 </div>
               </button>
             </form>
-            
+
             <!-- Social login styled as "OTHER SHOWINGS" -->
             <div class="other-showings">
               <h3>HOẶC</h3>
@@ -272,23 +275,27 @@ const switchToLogin = () => {
                 </button>
               </div>
             </div>
-            
+
             <!-- Register link styled as "coming soon" -->
             <div class="coming-soon">
               <div class="filmstrip-line"></div>
-              <p>CHƯA CÓ TÀI KHOẢN? <button @click="switchToRegister" class="register-link">TẠO TÀI KHOẢN</button></p>
+              <p>
+                CHƯA CÓ TÀI KHOẢN?
+                <button @click="switchToRegister" class="register-link">TẠO TÀI KHOẢN</button>
+              </p>
               <div class="filmstrip-line"></div>
             </div>
           </div>
         </div>
-        
+
         <!-- Cinema seats at the bottom for decoration -->
         <div class="cinema-seats"></div>
       </div>
     </div>
 
     <!-- Register Modal -->
-    <div v-if="showRegisterModal" 
+    <div
+      v-if="showRegisterModal"
       class="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
       @click="showRegisterModal = false"
     >
@@ -296,26 +303,23 @@ const switchToLogin = () => {
       <div class="absolute inset-0">
         <div class="cinema-backdrop"></div>
       </div>
-      
+
       <!-- Theater screen with projector effect -->
-      <div 
-        class="projector-container relative z-20"
-        @click.stop
-      >
+      <div class="projector-container relative z-20" @click.stop>
         <!-- Projector light beam effect -->
         <div class="projector-beam"></div>
-        
+
         <!-- Screen frame -->
         <div class="login-screen register-screen">
           <!-- Screen curtains -->
           <div class="curtain-left"></div>
           <div class="curtain-right"></div>
-          
+
           <!-- Register card styled as movie screen -->
           <div class="screen-content relative">
             <!-- Content glow effect -->
             <div class="screen-glow"></div>
-            
+
             <!-- Motion picture rating style header -->
             <div class="movie-rating">
               <div class="rating-box premiere-tag">
@@ -329,106 +333,94 @@ const switchToLogin = () => {
                 <p>ĐĂNG KÝ THÀNH VIÊN MỚI</p>
               </div>
             </div>
-            
+
             <!-- Register form in cinematic style -->
             <form @submit.prevent="handleRegister" class="movie-form">
               <!-- Fullname field -->
               <div class="form-field">
                 <label for="fullName" class="field-label">TÊN ĐẦY ĐỦ</label>
                 <div class="input-container">
-                  <input 
-                    type="text" 
-                    id="fullName" 
-                    v-model="fullName" 
+                  <input
+                    type="text"
+                    id="fullName"
+                    v-model="fullName"
                     placeholder="Nhập tên đầy đủ"
                     required
                   />
                   <div class="field-effect"></div>
                 </div>
               </div>
-              
+
               <!-- Username field -->
               <div class="form-field">
                 <label for="username" class="field-label">TÊN ĐĂNG NHẬP</label>
                 <div class="input-container">
-                  <input 
-                    type="text" 
-                    id="username" 
-                    v-model="username" 
+                  <input
+                    type="text"
+                    id="username"
+                    v-model="username"
                     placeholder="Tên đăng nhập của bạn"
                     required
                   />
                   <div class="field-effect"></div>
                 </div>
               </div>
-              
+
               <!-- Email field -->
               <div class="form-field">
                 <label for="register-email" class="field-label">ĐỊA CHỈ EMAIL</label>
                 <div class="input-container">
-                  <input 
-                    type="email" 
-                    id="register-email" 
-                    v-model="email" 
+                  <input
+                    type="email"
+                    id="register-email"
+                    v-model="email"
                     placeholder="email@example.com"
                     required
                   />
                   <div class="field-effect"></div>
                 </div>
               </div>
-              
+
               <!-- Password field -->
               <div class="form-field">
                 <label for="register-password" class="field-label">MẬT KHẨU</label>
                 <div class="input-container">
-                  <input 
-                    :type="showPassword ? 'text' : 'password'" 
-                    id="register-password" 
+                  <input
+                    :type="showPassword ? 'text' : 'password'"
+                    id="register-password"
                     v-model="password"
                     placeholder="••••••••"
                     required
                   />
-                  <button 
-                    type="button"
-                    class="eye-icon"
-                    @click="togglePasswordVisibility"
-                  >
+                  <button type="button" class="eye-icon" @click="togglePasswordVisibility">
                     <div class="eye" :class="{ 'eye-closed': !showPassword }"></div>
                   </button>
                   <div class="field-effect"></div>
                 </div>
               </div>
-              
+
               <!-- Confirm Password field -->
               <div class="form-field">
                 <label for="confirm-password" class="field-label">XÁC NHẬN MẬT KHẨU</label>
                 <div class="input-container">
-                  <input 
-                    :type="showConfirmPassword ? 'text' : 'password'" 
-                    id="confirm-password" 
+                  <input
+                    :type="showConfirmPassword ? 'text' : 'password'"
+                    id="confirm-password"
                     v-model="confirmPassword"
                     placeholder="••••••••"
                     required
                     :class="{ 'error-input': passwordMatchError }"
                   />
-                  <button 
-                    type="button"
-                    class="eye-icon"
-                    @click="toggleConfirmPasswordVisibility"
-                  >
+                  <button type="button" class="eye-icon" @click="toggleConfirmPasswordVisibility">
                     <div class="eye" :class="{ 'eye-closed': !showConfirmPassword }"></div>
                   </button>
                   <div class="field-effect"></div>
                 </div>
                 <p v-if="passwordMatchError" class="password-error">Mật khẩu không khớp!</p>
               </div>
-              
+
               <!-- Register button styled as premiere ticket -->
-              <button 
-                type="submit" 
-                class="movie-ticket-btn premiere-ticket"
-                :disabled="isLoading"
-              >
+              <button type="submit" class="movie-ticket-btn premiere-ticket" :disabled="isLoading">
                 <div class="ticket-inner">
                   <div class="ticket-holes"></div>
                   <div class="ticket-content">
@@ -441,7 +433,7 @@ const switchToLogin = () => {
                 </div>
               </button>
             </form>
-            
+
             <!-- Social register styled as "OTHER SHOWINGS" -->
             <div class="other-showings">
               <h3>HOẶC</h3>
@@ -460,16 +452,19 @@ const switchToLogin = () => {
                 </button>
               </div>
             </div>
-            
+
             <!-- Login link styled as "back to showings" -->
             <div class="coming-soon">
               <div class="filmstrip-line"></div>
-              <p>ĐÃ CÓ TÀI KHOẢN? <button @click="switchToLogin" class="login-link">ĐĂNG NHẬP NGAY</button></p>
+              <p>
+                ĐÃ CÓ TÀI KHOẢN?
+                <button @click="switchToLogin" class="login-link">ĐĂNG NHẬP NGAY</button>
+              </p>
               <div class="filmstrip-line"></div>
             </div>
           </div>
         </div>
-        
+
         <!-- Cinema seats at the bottom for decoration -->
         <div class="cinema-seats"></div>
       </div>
@@ -493,7 +488,11 @@ const switchToLogin = () => {
             <div class="max-w-6xl mx-auto px-4">
               <div class="h-8 bg-zinc-800 w-1/3 rounded mb-4 animate-pulse"></div>
               <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                <div class="aspect-square rounded bg-zinc-800 animate-pulse" v-for="n in 6" :key="n"></div>
+                <div
+                  class="aspect-square rounded bg-zinc-800 animate-pulse"
+                  v-for="n in 6"
+                  :key="n"
+                ></div>
               </div>
             </div>
           </div>
@@ -511,7 +510,11 @@ const switchToLogin = () => {
                 <div class="max-w-6xl mx-auto px-4">
                   <div class="h-8 bg-zinc-800 w-1/3 rounded mb-4 animate-pulse"></div>
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="aspect-video rounded bg-zinc-800 animate-pulse" v-for="n in 3" :key="n"></div>
+                    <div
+                      class="aspect-video rounded bg-zinc-800 animate-pulse"
+                      v-for="n in 3"
+                      :key="n"
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -539,10 +542,12 @@ const switchToLogin = () => {
             <FeaturedMovie />
           </LazyLoader>
         </div>
-        
+
         <!-- Film Series Section with visual connection -->
         <div class="relative">
-          <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-zinc-900 to-transparent z-0"></div>
+          <div
+            class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-zinc-900 to-transparent z-0"
+          ></div>
           <div class="relative z-10 mt-8">
             <LazyLoader rootMargin="200px 0px">
               <template #placeholder>
@@ -550,7 +555,11 @@ const switchToLogin = () => {
                   <div class="max-w-6xl mx-auto px-4">
                     <div class="h-8 bg-zinc-800 w-1/3 rounded mb-4 animate-pulse"></div>
                     <div class="flex overflow-x-auto gap-4 pb-4 hide-scrollbar">
-                      <div class="flex-none w-[280px] h-[180px] rounded bg-zinc-800 animate-pulse" v-for="n in 5" :key="n"></div>
+                      <div
+                        class="flex-none w-[280px] h-[180px] rounded bg-zinc-800 animate-pulse"
+                        v-for="n in 5"
+                        :key="n"
+                      ></div>
                     </div>
                   </div>
                 </div>
@@ -559,10 +568,12 @@ const switchToLogin = () => {
             </LazyLoader>
           </div>
         </div>
-        
+
         <!-- Film Movies Section with visual connection -->
         <div class="relative">
-          <div class="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-zinc-900/70 to-transparent z-0"></div>
+          <div
+            class="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-zinc-900/70 to-transparent z-0"
+          ></div>
           <div class="relative z-10 mt-4">
             <LazyLoader rootMargin="200px 0px">
               <template #placeholder>
@@ -570,7 +581,11 @@ const switchToLogin = () => {
                   <div class="max-w-6xl mx-auto px-4">
                     <div class="h-8 bg-zinc-800 w-1/3 rounded mb-4 animate-pulse"></div>
                     <div class="flex overflow-x-auto gap-4 pb-4 hide-scrollbar">
-                      <div class="flex-none w-[280px] h-[400px] rounded bg-zinc-800 animate-pulse" v-for="n in 5" :key="n"></div>
+                      <div
+                        class="flex-none w-[280px] h-[400px] rounded bg-zinc-800 animate-pulse"
+                        v-for="n in 5"
+                        :key="n"
+                      ></div>
                     </div>
                   </div>
                 </div>
@@ -579,6 +594,8 @@ const switchToLogin = () => {
             </LazyLoader>
           </div>
         </div>
+
+        <AppFooter />
       </div>
     </div>
   </main>
@@ -601,7 +618,8 @@ const switchToLogin = () => {
 
 /* Skeleton animation */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -643,21 +661,26 @@ const switchToLogin = () => {
   height: 150%;
   top: -25%;
   left: -25%;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 0, 0, 0.05) 0%,
-    transparent 60%
-  );
+  background: radial-gradient(circle at center, rgba(255, 0, 0, 0.05) 0%, transparent 60%);
   pointer-events: none;
   z-index: 1;
   animation: spotlight 15s infinite linear;
 }
 
 @keyframes spotlight {
-  0%, 100% { transform: translate(-5%, -5%); }
-  25% { transform: translate(5%, 5%); }
-  50% { transform: translate(5%, -5%); }
-  75% { transform: translate(-5%, 5%); }
+  0%,
+  100% {
+    transform: translate(-5%, -5%);
+  }
+  25% {
+    transform: translate(5%, 5%);
+  }
+  50% {
+    transform: translate(5%, -5%);
+  }
+  75% {
+    transform: translate(-5%, 5%);
+  }
 }
 
 /* Cinema logo glow */
@@ -681,19 +704,31 @@ const switchToLogin = () => {
 }
 
 /* Film strips */
-.film-strip-top, .film-strip-bottom {
+.film-strip-top,
+.film-strip-bottom {
   height: 12px;
-  background-image: linear-gradient(90deg, 
-    rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.8) 10%, 
-    rgba(255,255,255,0.2) 10%, rgba(255,255,255,0.2) 20%, 
-    rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.8) 30%, 
-    rgba(255,255,255,0.2) 30%, rgba(255,255,255,0.2) 40%, 
-    rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.8) 50%, 
-    rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 60%, 
-    rgba(0,0,0,0.8) 60%, rgba(0,0,0,0.8) 70%, 
-    rgba(255,255,255,0.2) 70%, rgba(255,255,255,0.2) 80%, 
-    rgba(0,0,0,0.8) 80%, rgba(0,0,0,0.8) 90%, 
-    rgba(255,255,255,0.2) 90%, rgba(255,255,255,0.2) 100%
+  background-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.8) 10%,
+    rgba(255, 255, 255, 0.2) 10%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(0, 0, 0, 0.8) 20%,
+    rgba(0, 0, 0, 0.8) 30%,
+    rgba(255, 255, 255, 0.2) 30%,
+    rgba(255, 255, 255, 0.2) 40%,
+    rgba(0, 0, 0, 0.8) 40%,
+    rgba(0, 0, 0, 0.8) 50%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.2) 60%,
+    rgba(0, 0, 0, 0.8) 60%,
+    rgba(0, 0, 0, 0.8) 70%,
+    rgba(255, 255, 255, 0.2) 70%,
+    rgba(255, 255, 255, 0.2) 80%,
+    rgba(0, 0, 0, 0.8) 80%,
+    rgba(0, 0, 0, 0.8) 90%,
+    rgba(255, 255, 255, 0.2) 90%,
+    rgba(255, 255, 255, 0.2) 100%
   );
   background-size: 60px 100%;
 }
@@ -749,12 +784,14 @@ const switchToLogin = () => {
   width: 800px;
   height: 800px;
   border-radius: 50%;
-  border: 40px dashed rgba(255,255,255,0.03);
+  border: 40px dashed rgba(255, 255, 255, 0.03);
   animation: spin 60s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Ticket button effect */
@@ -763,12 +800,14 @@ const switchToLogin = () => {
   box-shadow: 0 5px 20px rgba(220, 38, 38, 0.4);
 }
 
-.tickets-left, .tickets-right {
+.tickets-left,
+.tickets-right {
   width: 20px;
 }
 
-.tickets-left::before, .tickets-right::before {
-  content: "";
+.tickets-left::before,
+.tickets-right::before {
+  content: '';
   position: absolute;
   width: 8px;
   height: 100%;
@@ -812,12 +851,7 @@ const switchToLogin = () => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transition: all 0.6s ease;
 }
 
@@ -840,7 +874,7 @@ const switchToLogin = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
+  background-image:
     radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.02) 0%, transparent 8%),
     radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.03) 0%, transparent 12%),
     radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.01) 0%, transparent 6%),
@@ -851,10 +885,19 @@ const switchToLogin = () => {
 }
 
 @keyframes particles-float {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  25% { transform: scale(1.1) rotate(1deg); }
-  50% { transform: scale(1.05) rotate(-1deg); }
-  75% { transform: scale(1.1) rotate(0.5deg); }
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(1deg);
+  }
+  50% {
+    transform: scale(1.05) rotate(-1deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(0.5deg);
+  }
 }
 
 /* Blur backdrop */
@@ -878,7 +921,7 @@ const switchToLogin = () => {
   .login-content {
     padding: 6vw;
   }
-  
+
   .login-header h1 {
     font-size: 1.75rem;
   }
@@ -903,7 +946,7 @@ const switchToLogin = () => {
   inset: 0;
   background-color: #000;
   opacity: 0.92;
-  background-image: 
+  background-image:
     linear-gradient(rgba(20, 20, 20, 0.8) 1px, transparent 1px),
     linear-gradient(90deg, rgba(20, 20, 20, 0.8) 1px, transparent 1px);
   background-size: 40px 40px;
@@ -911,8 +954,12 @@ const switchToLogin = () => {
 }
 
 @keyframes backdrop-float {
-  0% { background-position: 0 0; }
-  100% { background-position: 80px 80px; }
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 80px 80px;
+  }
 }
 
 /* Projector setup */
@@ -944,10 +991,12 @@ const switchToLogin = () => {
   transform: translateX(-50%);
   width: 140%;
   height: 100vh;
-  background: linear-gradient(to bottom, 
-    rgba(255, 255, 255, 0) 0%, 
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
     rgba(255, 255, 255, 0.03) 75%,
-    rgba(255, 255, 255, 0.08) 100%);
+    rgba(255, 255, 255, 0.08) 100%
+  );
   clip-path: polygon(0% 100%, 100% 100%, 65% 0%, 35% 0%);
   pointer-events: none;
   z-index: -1;
@@ -959,24 +1008,36 @@ const switchToLogin = () => {
   width: 100%;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 
+  box-shadow:
     0 5px 15px rgba(0, 0, 0, 0.8),
     0 15px 35px rgba(0, 0, 0, 0.5),
     0 45px 65px rgba(0, 0, 0, 0.35);
 }
 
 /* Curtains effect */
-.curtain-left, .curtain-right {
+.curtain-left,
+.curtain-right {
   position: absolute;
   top: 0;
   height: 100%;
   width: 8%; /* Giảm từ 15% xuống 8% */
   background-color: #760000;
-  background-image: 
+  background-image:
     linear-gradient(90deg, #670000 0%, #920000 50%, #670000 100%),
-    linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 15%, rgba(0,0,0,0.3) 30%, transparent 45%, rgba(0,0,0,0.3) 60%, transparent 75%, rgba(0,0,0,0.3) 90%);
-  background-size: 100% 100%, 100% 120px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.3) 0%,
+      transparent 15%,
+      rgba(0, 0, 0, 0.3) 30%,
+      transparent 45%,
+      rgba(0, 0, 0, 0.3) 60%,
+      transparent 75%,
+      rgba(0, 0, 0, 0.3) 90%
+    );
+  background-size:
+    100% 100%,
+    100% 120px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
   z-index: 10;
   animation-duration: 2s;
   animation-fill-mode: forwards;
@@ -984,22 +1045,36 @@ const switchToLogin = () => {
 }
 
 @keyframes curtain-left {
-  from { transform: translateX(-5%) scaleX(5); }
-  to { transform: translateX(0) scaleX(1); }
+  from {
+    transform: translateX(-5%) scaleX(5);
+  }
+  to {
+    transform: translateX(0) scaleX(1);
+  }
 }
 
 @keyframes curtain-right {
-  from { transform: translateX(5%) scaleX(5); }
-  to { transform: translateX(0) scaleX(1); }
+  from {
+    transform: translateX(5%) scaleX(5);
+  }
+  to {
+    transform: translateX(0) scaleX(1);
+  }
 }
 
 /* Screen content */
 .screen-content {
   min-height: 500px;
   background-color: #121212;
-  background-image: 
+  background-image:
     linear-gradient(to bottom, rgba(40, 40, 40, 0.4) 0%, transparent 10%, rgba(0, 0, 0, 0.2) 100%),
-    repeating-linear-gradient(to bottom, transparent, transparent 1px, rgba(255, 255, 255, 0.02) 1px, rgba(255, 255, 255, 0.02) 2px);
+    repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 1px,
+      rgba(255, 255, 255, 0.02) 1px,
+      rgba(255, 255, 255, 0.02) 2px
+    );
   padding: 35px 30px 30px; /* Tăng padding ngang lên */
   text-align: center;
   color: #fff;
@@ -1010,7 +1085,11 @@ const switchToLogin = () => {
 .screen-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0) 70%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
   pointer-events: none;
 }
 
@@ -1118,16 +1197,22 @@ const switchToLogin = () => {
   left: 0;
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.3) 50%, 
-    transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
   animation: scan-line 2s linear infinite;
 }
 
 @keyframes scan-line {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .eye-icon {
@@ -1323,8 +1408,16 @@ const switchToLogin = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
-    linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.1) 75%,
+    transparent 75%,
+    transparent
+  );
   background-size: 4px 4px;
   opacity: 0.3;
 }
@@ -1366,7 +1459,7 @@ const switchToLogin = () => {
   left: 3px;
   right: 3px;
   bottom: 3px;
-  border: 2px dotted rgba(255,255,255,0.6);
+  border: 2px dotted rgba(255, 255, 255, 0.6);
 }
 
 .film-reel-loader::after {
@@ -1374,7 +1467,7 @@ const switchToLogin = () => {
   left: 7px;
   right: 7px;
   bottom: 7px;
-  background-color: rgba(255,255,255,0.4);
+  background-color: rgba(255, 255, 255, 0.4);
 }
 
 /* Other showings section */
@@ -1468,12 +1561,15 @@ const switchToLogin = () => {
 .filmstrip-line {
   height: 4px;
   margin: 12px 0;
-  background-image: 
-    linear-gradient(90deg, 
-      transparent 0%, transparent 10%, 
-      rgba(255,255,255,0.05) 10%, rgba(255,255,255,0.05) 90%, 
-      transparent 90%, transparent 100%
-    );
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 10%,
+    rgba(255, 255, 255, 0.05) 10%,
+    rgba(255, 255, 255, 0.05) 90%,
+    transparent 90%,
+    transparent 100%
+  );
   position: relative;
 }
 
@@ -1483,14 +1579,19 @@ const switchToLogin = () => {
   position: absolute;
   height: 100%;
   width: 20%;
-  background-image: 
-    linear-gradient(90deg,
-      rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.05) 20%,
-      transparent 20%, transparent 40%,
-      rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.05) 60%,
-      transparent 60%, transparent 80%,
-      rgba(255,255,255,0.05) 80%, rgba(255,255,255,0.05) 100%
-    );
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.05) 20%,
+    transparent 20%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.05) 40%,
+    rgba(255, 255, 255, 0.05) 60%,
+    transparent 60%,
+    transparent 80%,
+    rgba(255, 255, 255, 0.05) 80%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
   background-size: 10px 100%;
 }
 
@@ -1543,9 +1644,9 @@ const switchToLogin = () => {
   margin: 0 -10%;
   background-image: radial-gradient(
     circle at center,
-    rgba(20, 20, 20, 0.6) 0, 
+    rgba(20, 20, 20, 0.6) 0,
     rgba(20, 20, 20, 0.6) 2px,
-    transparent 3px, 
+    transparent 3px,
     transparent 9px
   );
   background-size: 10px 10px;
@@ -1563,25 +1664,26 @@ const switchToLogin = () => {
     width: 95%;
     margin-bottom: -20px;
   }
-  
+
   .movie-form {
     max-width: 100%; /* Sử dụng toàn bộ không gian trên mobile */
   }
-  
-  .curtain-left, .curtain-right {
+
+  .curtain-left,
+  .curtain-right {
     width: 5%; /* Thu nhỏ hơn nữa trên mobile */
   }
-  
+
   /* Các điều chỉnh khác giữ nguyên */
   .showtimes {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .projector-beam {
     display: none;
   }
-  
+
   /* Tăng kích thước input đảm bảo dễ nhập liệu trên mobile */
   .form-field input {
     padding: 14px 16px;
