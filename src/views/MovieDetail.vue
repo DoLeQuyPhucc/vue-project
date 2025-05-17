@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getMovieDetail } from '@/services/movieService'
-import type { MovieDetailResponse, MovieDetail } from '@/services/movieService'
+import { getMovieDetail, getLatestMovies } from '@/services/movieService'
+import type { MovieDetailResponse, MovieDetail, Movie } from '@/services/movieService'
 
 interface Episode {
   name: string
@@ -23,7 +23,9 @@ const movieData = ref<MovieDetail | null>(null)
 const episodes = ref<ServerData[]>([])
 const isLoading = ref(true)
 const error = ref<string | null>(null)
-const activeTab = ref('thongTin') // Tabs: thongTin, trailerPhim
+const activeTab = ref('thongTin') // Tabs: thongTin, galleryPhim, dienVien, phimDeXuat
+const recommendedMovies = ref<Movie[]>([])
+const isLoadingRecommended = ref(false)
 
 // Lấy thông tin phim từ API
 const fetchMovieDetail = async () => {
@@ -37,6 +39,9 @@ const fetchMovieDetail = async () => {
       movieData.value = response.movie
       episodes.value = response.episodes
       document.title = `LoPhim - ${response.movie.name}`
+
+      // Fetch recommended movies after getting movie details
+      fetchRecommendedMovies()
     } else {
       error.value = 'Không thể tải thông tin phim'
     }
@@ -45,6 +50,26 @@ const fetchMovieDetail = async () => {
     error.value = 'Đã xảy ra lỗi khi tải thông tin phim'
   } finally {
     isLoading.value = false
+  }
+}
+
+// Fetch recommended movies
+const fetchRecommendedMovies = async () => {
+  try {
+    isLoadingRecommended.value = true
+    // Generate a random page between 1 and 10
+    const randomPage = Math.floor(Math.random() * 10) + 1
+    const response = await getLatestMovies(randomPage)
+    if (response.status) {
+      // Filter out current movie and slice to get 6 movies max
+      recommendedMovies.value = response.items
+        .filter((movie) => !movieData.value || movie.slug !== movieData.value.slug)
+        .slice(0, 6)
+    }
+  } catch (err) {
+    console.error('Error fetching recommended movies:', err)
+  } finally {
+    isLoadingRecommended.value = false
   }
 }
 
@@ -75,6 +100,15 @@ const hasTrailer = computed(() => {
   return movieData.value?.trailer_url && movieData.value.trailer_url !== ''
 })
 
+// Kiểm tra xem phim có gallery không (trailer, poster và thumb)
+const hasGallery = computed(() => {
+  return (
+    hasTrailer.value ||
+    (movieData.value?.poster_url && movieData.value.poster_url !== '') ||
+    (movieData.value?.thumb_url && movieData.value.thumb_url !== '')
+  )
+})
+
 // Lấy ID trailer YouTube
 const trailerYoutubeId = computed(() => {
   if (!movieData.value?.trailer_url) return null
@@ -89,7 +123,12 @@ const trailerYoutubeId = computed(() => {
 
 // Convert episode data to user-friendly format
 const hasEpisodes = computed(() => {
-  return episodes.value.length > 0 && episodes.value.some(server => server.server_data.length > 0)
+  return episodes.value.length > 0 && episodes.value.some((server) => server.server_data.length > 0)
+})
+
+// Check if movie has actors
+const hasActors = computed(() => {
+  return movieData.value?.actor && movieData.value.actor.length > 0
 })
 
 // Trạng thái phim (Đang chiếu, Hoàn thành, ...)
@@ -113,10 +152,25 @@ const navigateToWatch = () => {
   }
 }
 
+// Navigate to movie detail page
+const navigateToMovie = (slug: string) => {
+  router.push(`/phim/${slug}`)
+}
+
 // Fetch data when component mounts
 onMounted(() => {
   fetchMovieDetail()
 })
+
+// Watch for route changes to reload data
+watch(
+  () => route.params.slug,
+  (newSlug) => {
+    if (newSlug) {
+      fetchMovieDetail()
+    }
+  },
+)
 </script>
 
 <template>
@@ -200,23 +254,6 @@ onMounted(() => {
                   class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 ></div>
 
-                <!-- Rating badge with enhanced styling -->
-                <div
-                  class="absolute top-4 right-4 bg-black/80 text-yellow-400 p-2 rounded-md flex items-center gap-1 shadow-lg border border-yellow-500/30"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                    />
-                  </svg>
-                  <span class="font-bold">{{ ratingScore }}</span>
-                </div>
-
                 <!-- Type badge with enhanced styling -->
                 <div
                   v-if="movieData.type === 'series'"
@@ -251,11 +288,6 @@ onMounted(() => {
                 </svg>
                 <span>Xem Phim</span>
               </button>
-
-              <!-- Episode info if it's a series -->
-              <div v-if="hasEpisodes && movieData.type === 'series'" class="mt-2 text-center text-sm text-gray-400">
-                {{ episodes.length }} server - {{ movieData.episode_current }} tập
-              </div>
 
               <!-- Trailer button with enhanced styling -->
               <button
@@ -483,10 +515,9 @@ onMounted(() => {
             ></div>
           </button>
           <button
-            v-if="hasTrailer"
-            @click="switchTab('trailerPhim')"
+            @click="switchTab('galleryPhim')"
             class="px-6 py-3 font-medium transition-all duration-300 relative"
-            :class="activeTab === 'trailerPhim' ? 'text-red-500' : 'text-gray-400 hover:text-white'"
+            :class="activeTab === 'galleryPhim' ? 'text-red-500' : 'text-gray-400 hover:text-white'"
           >
             <span class="flex items-center gap-2">
               <svg
@@ -500,13 +531,68 @@ onMounted(() => {
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              Trailer phim
+              Gallery phim
             </span>
             <div
-              v-if="activeTab === 'trailerPhim'"
+              v-if="activeTab === 'galleryPhim'"
+              class="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-red-700 to-red-500"
+            ></div>
+          </button>
+          <button
+            v-if="hasActors"
+            @click="switchTab('dienVien')"
+            class="px-6 py-3 font-medium transition-all duration-300 relative"
+            :class="activeTab === 'dienVien' ? 'text-red-500' : 'text-gray-400 hover:text-white'"
+          >
+            <span class="flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              Diễn viên
+            </span>
+            <div
+              v-if="activeTab === 'dienVien'"
+              class="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-red-700 to-red-500"
+            ></div>
+          </button>
+          <button
+            @click="switchTab('phimDeXuat')"
+            class="px-6 py-3 font-medium transition-all duration-300 relative"
+            :class="activeTab === 'phimDeXuat' ? 'text-red-500' : 'text-gray-400 hover:text-white'"
+          >
+            <span class="flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              Phim đề xuất
+            </span>
+            <div
+              v-if="activeTab === 'phimDeXuat'"
               class="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-red-700 to-red-500"
             ></div>
           </button>
@@ -537,11 +623,199 @@ onMounted(() => {
                 Nội dung phim
               </h2>
               <div class="text-gray-300 leading-relaxed space-y-4" v-html="formattedContent"></div>
+
+              <!-- Server Information -->
+              <div v-if="hasEpisodes" class="mt-8">
+                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-200">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+                    />
+                  </svg>
+                  Phiên bản phim
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <!-- Vietsub Server -->
+                  <div v-if="episodes.some(server => server.server_name.toLowerCase().includes('vietsub'))" 
+                       class="bg-zinc-800/70 border border-zinc-700 rounded-lg p-4 transition-all hover:border-red-500/40 hover:shadow-md hover:shadow-red-500/10">
+                    <div class="flex items-center mb-3">
+                      <div class="bg-gradient-to-r from-blue-600 to-blue-500 w-10 h-10 rounded-full flex items-center justify-center mr-3 shadow-lg shadow-blue-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 class="text-white font-medium">Vietsub</h4>
+                        <p class="text-gray-400 text-sm">Phụ đề tiếng Việt</p>
+                      </div>
+                    </div>
+                    <div class="pl-2 border-l-2 border-blue-500">
+                      <p class="text-gray-300 text-sm">
+                        Server phụ đề tiếng Việt chất lượng cao, được cập nhật nhanh nhất
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Thuyết Minh Server -->
+                  <div v-if="episodes.some(server => server.server_name.toLowerCase().includes('thuyết minh') || server.server_name.toLowerCase().includes('thuyet minh'))" 
+                       class="bg-zinc-800/70 border border-zinc-700 rounded-lg p-4 transition-all hover:border-red-500/40 hover:shadow-md hover:shadow-red-500/10">
+                    <div class="flex items-center mb-3">
+                      <div class="bg-gradient-to-r from-purple-600 to-purple-500 w-10 h-10 rounded-full flex items-center justify-center mr-3 shadow-lg shadow-purple-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 class="text-white font-medium">Thuyết Minh</h4>
+                        <p class="text-gray-400 text-sm">Lồng tiếng Việt</p>
+                      </div>
+                    </div>
+                    <div class="pl-2 border-l-2 border-purple-500">
+                      <p class="text-gray-300 text-sm">
+                        Phiên bản lồng tiếng Việt chất lượng cao
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 space-y-4">
+                <!-- Additional movie details -->
+                <div
+                  v-if="movieData?.is_copyright"
+                  class="flex items-center gap-2 text-sm text-gray-300"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    />
+                  </svg>
+                  <span>Phim bản quyền</span>
+                </div>
+                <div
+                  v-if="movieData?.sub_docquyen"
+                  class="flex items-center gap-2 text-sm text-gray-300"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                    />
+                  </svg>
+                  <span>Phụ đề độc quyền</span>
+                </div>
+                <div
+                  v-if="movieData?.chieurap"
+                  class="flex items-center gap-2 text-sm text-gray-300"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
+                    />
+                  </svg>
+                  <span>Phim chiếu rạp</span>
+                </div>
+                <div v-if="movieData?.view" class="flex items-center gap-2 text-sm text-gray-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                  <span>Lượt xem: {{ movieData.view.toLocaleString() }}</span>
+                </div>
+                <div v-if="movieData?.notify" class="flex items-center gap-2 text-sm text-gray-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
+                  </svg>
+                  <span>{{ movieData.notify }}</span>
+                </div>
+                <div
+                  v-if="movieData?.showtimes"
+                  class="flex items-center gap-2 text-sm text-gray-300"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>Lịch chiếu: {{ movieData.showtimes }}</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Trailer tab -->
-          <div v-else-if="activeTab === 'trailerPhim'" class="trailer-container">
+          <!-- Gallery tab (previously Trailer tab) -->
+          <div v-else-if="activeTab === 'galleryPhim'" class="gallery-container">
             <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 backdrop-blur-sm">
               <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
                 <svg
@@ -555,23 +829,161 @@ onMounted(() => {
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                Trailer phim {{ movieData.name }}
+                Gallery phim {{ movieData?.name }}
               </h2>
-              <div
-                v-if="trailerYoutubeId"
-                class="aspect-video w-full max-w-3xl mx-auto bg-black rounded-lg overflow-hidden shadow-xl"
-              >
-                <iframe
-                  class="w-full h-full"
-                  :src="`https://www.youtube.com/embed/${trailerYoutubeId}`"
-                  frameborder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowfullscreen
-                ></iframe>
+
+              <!-- Videos section -->
+              <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-4 text-gray-200">Video</h3>
+                <div
+                  v-if="trailerYoutubeId"
+                  class="aspect-video w-full max-w-3xl mx-auto bg-black rounded-lg overflow-hidden shadow-xl"
+                >
+                  <iframe
+                    class="w-full h-full"
+                    :src="`https://www.youtube.com/embed/${trailerYoutubeId}`"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+                <div
+                  v-else
+                  class="text-center py-10 text-gray-400 bg-zinc-800/40 rounded-lg border border-dashed border-zinc-700"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-12 w-12 mx-auto mb-4 text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p>Không có video cho phim này</p>
+                  <div
+                    class="w-64 h-64 mx-auto mt-4 bg-contain bg-center bg-no-repeat"
+                    style="
+                      background-image: url('https://media.giphy.com/media/26n6WywJyh39n1pBu/giphy.gif');
+                    "
+                  ></div>
+                </div>
               </div>
+
+              <!-- Images section -->
+              <div>
+                <h3 class="text-lg font-semibold mb-4 text-gray-200">Hình ảnh</h3>
+
+                <div
+                  v-if="movieData?.poster_url || movieData?.thumb_url"
+                  class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
+                  <div v-if="movieData?.poster_url" class="overflow-hidden rounded-lg shadow-lg">
+                    <h4 class="text-sm font-medium text-gray-400 mb-2">Poster phim</h4>
+                    <img
+                      :src="movieData.poster_url"
+                      :alt="`Poster ${movieData.name}`"
+                      class="w-full object-cover rounded-lg hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+
+                  <div v-if="movieData?.thumb_url" class="overflow-hidden rounded-lg shadow-lg">
+                    <h4 class="text-sm font-medium text-gray-400 mb-2">Thumbnail phim</h4>
+                    <img
+                      :src="movieData.thumb_url"
+                      :alt="`Thumbnail ${movieData.name}`"
+                      class="w-full object-cover rounded-lg hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  v-else
+                  class="text-center py-10 text-gray-400 bg-zinc-800/40 rounded-lg border border-dashed border-zinc-700"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-12 w-12 mx-auto mb-4 text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p>Không có hình ảnh cho phim này</p>
+                  <div
+                    class="w-64 h-64 mx-auto mt-4 bg-contain bg-center bg-no-repeat"
+                    style="
+                      background-image: url('https://media.giphy.com/media/3zhxq2ttgN6rQZzTqt/giphy.gif');
+                    "
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Diễn viên tab -->
+          <div v-else-if="activeTab === 'dienVien'" class="actors-container">
+            <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 backdrop-blur-sm">
+              <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6 text-red-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+                Diễn viên
+              </h2>
+
+              <div
+                v-if="movieData?.actor && movieData.actor.length > 0"
+                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
+              >
+                <div v-for="(actor, index) in movieData.actor" :key="index" class="text-center">
+                  <div
+                    class="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-full bg-zinc-800 border border-zinc-700 overflow-hidden flex items-center justify-center mb-2"
+                  >
+                    <!-- Actor placeholder -->
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-12 w-12 text-zinc-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </div>
+                  <div class="text-sm font-medium">{{ actor }}</div>
+                </div>
+              </div>
+
               <div
                 v-else
                 class="text-center py-10 text-gray-400 bg-zinc-800/40 rounded-lg border border-dashed border-zinc-700"
@@ -587,10 +999,113 @@ onMounted(() => {
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                Không tìm thấy trailer cho phim này
+                <p>Không có thông tin diễn viên cho phim này</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Phim đề xuất tab -->
+          <div v-else-if="activeTab === 'phimDeXuat'" class="recommended-container">
+            <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 backdrop-blur-sm">
+              <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6 text-red-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
+                </svg>
+                Có thể bạn sẽ thích
+              </h2>
+
+              <!-- Loading state -->
+              <div v-if="isLoadingRecommended" class="flex justify-center py-8">
+                <div class="loader-small">
+                  <div class="film-reel-small"></div>
+                </div>
+              </div>
+
+              <!-- Movies grid -->
+              <div
+                v-else-if="recommendedMovies.length > 0"
+                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-4"
+              >
+                <div
+                  v-for="movie in recommendedMovies"
+                  :key="movie._id"
+                  class="movie-card group cursor-pointer"
+                  @click="navigateToMovie(movie.slug)"
+                >
+                  <div
+                    class="aspect-[2/3] rounded-lg overflow-hidden bg-zinc-800 relative shadow-md mb-2"
+                  >
+                    <img
+                      :src="movie.poster_url || movie.thumb_url"
+                      :alt="movie.name"
+                      class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                    <div
+                      class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    ></div>
+
+                    <!-- Info overlay on hover -->
+                    <div
+                      class="absolute bottom-0 left-0 right-0 p-2 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+                    >
+                      <div class="flex gap-1 flex-wrap">
+                        <span class="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded">
+                          {{ movie.quality }}
+                        </span>
+                        <span
+                          v-if="movie.type === 'series'"
+                          class="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded"
+                        >
+                          {{ movie.episode_current }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <h3
+                    class="text-sm font-medium truncate group-hover:text-red-500 transition-colors"
+                  >
+                    {{ movie.name }}
+                  </h3>
+                  <p class="text-xs text-gray-400 truncate">
+                    {{ movie.origin_name }} ({{ movie.year }})
+                  </p>
+                </div>
+              </div>
+
+              <div
+                v-else
+                class="text-center py-10 text-gray-400 bg-zinc-800/40 rounded-lg border border-dashed border-zinc-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-12 w-12 mx-auto mb-4 text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
+                </svg>
+                <p>Không tìm thấy phim đề xuất</p>
               </div>
             </div>
           </div>
@@ -708,12 +1223,16 @@ onMounted(() => {
 
 /* Film grain effect */
 .movie-description,
-.trailer-container {
+.gallery-container,
+.actors-container,
+.recommended-container {
   position: relative;
 }
 
 .movie-description::before,
-.trailer-container::before {
+.gallery-container::before,
+.actors-container::before,
+.recommended-container::before {
   content: '';
   position: absolute;
   top: 0;
@@ -737,6 +1256,11 @@ onMounted(() => {
 
 .movie-ticket-btn:hover::after {
   animation: sheen 1s forwards;
+}
+
+/* Movie card hover effects */
+.movie-card:hover img {
+  transform: scale(1.05);
 }
 
 /* Responsive styling with enhanced effects */
@@ -794,5 +1318,25 @@ onMounted(() => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(220, 38, 38, 0.7);
+}
+
+/* Animation for gallery items */
+.gallery-container img {
+  transition: all 0.3s ease-in-out;
+}
+
+.gallery-container img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Actor circles glow effect */
+.actors-container .rounded-full {
+  transition: all 0.3s ease;
+}
+
+.actors-container .rounded-full:hover {
+  border-color: rgba(220, 38, 38, 0.5);
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.3);
 }
 </style>
