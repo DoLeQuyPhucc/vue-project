@@ -61,10 +61,9 @@ const fetchRecommendedMovies = async () => {
     const randomPage = Math.floor(Math.random() * 10) + 1
     const response = await getLatestMovies(randomPage)
     if (response.status) {
-      // Filter out current movie and slice to get 6 movies max
+      // Filter out current movie but don't limit the number of movies
       recommendedMovies.value = response.items
         .filter((movie) => !movieData.value || movie.slug !== movieData.value.slug)
-        .slice(0, 6)
     }
   } catch (err) {
     console.error('Error fetching recommended movies:', err)
@@ -1038,7 +1037,7 @@ watch(
               <!-- Movies grid -->
               <div
                 v-else-if="recommendedMovies.length > 0"
-                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-4"
+                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
               >
                 <div
                   v-for="movie in recommendedMovies"
