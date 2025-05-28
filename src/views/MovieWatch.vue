@@ -448,6 +448,7 @@ export default {
       watchProgressInterval: null,
       currentWatchTime: 0,
       currentServer: 0,
+      _fetchingMovie: null,
     }
   },
   computed: {
@@ -460,24 +461,32 @@ export default {
   },
   methods: {
     async fetchMovie() {
+      // Prevent multiple concurrent calls for the same slug
+      if (this._fetchingMovie === this.slug) {
+        return;
+      }
+      
       try {
-        this.loading = true
-        this.error = null
+        this._fetchingMovie = this.slug;
+        this.loading = true;
+        this.error = null;
 
-        const response = await getMovieDetail(this.slug)
-        this.movie = response.movie
+        const response = await getMovieDetail(this.slug);
+        this.movie = response.movie;
 
         // Get episodes from all servers
         if (response.episodes && response.episodes.length > 0) {
-          this.movie.episodes = response.episodes
-          this.loadEpisodesFromServer(this.currentServer)
+          this.movie.episodes = response.episodes;
+          this.loadEpisodesFromServer(this.currentServer);
         }
 
-        this.loading = false
+        this.loading = false;
       } catch (error) {
-        this.error = 'Không thể tải dữ liệu phim'
-        this.loading = false
-        console.error(error)
+        this.error = 'Không thể tải dữ liệu phim';
+        this.loading = false;
+        console.error(error);
+      } finally {
+        this._fetchingMovie = null;
       }
     },
     loadEpisodesFromServer(serverIndex) {
@@ -665,6 +674,16 @@ export default {
 
     // Add event listener for window resize which might indicate DevTools opening
     window.addEventListener('resize', this.checkDevToolsStatus)
+    
+    // Prevent multiple fetch calls by adding navigation guard
+    this.$watch(
+      () => this.$route.params.slug,
+      (newSlug, oldSlug) => {
+        if (newSlug !== oldSlug) {
+          this.fetchMovie()
+        }
+      }
+    )
   },
   beforeUnmount() {
     // Clean up interval when component is destroyed

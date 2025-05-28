@@ -9,6 +9,9 @@ interface CacheData<T> {
   timestamp: number
 }
 
+// Track ongoing requests to prevent duplicates
+const ongoingRequests = new Map<string, Promise<any>>();
+
 /**
  * Creates a cached API request function
  * @param apiFunction The original API function to call
@@ -23,6 +26,13 @@ export function createCachedApiCall<T>(
   const { key, expiry = 10 * 60 * 1000 } = cacheConfig
 
   return async (...args: any[]): Promise<T> => {
+    const requestKey = `${key}_${JSON.stringify(args)}`;
+    
+    // If there's already an ongoing request for this exact data, return that promise
+    if (ongoingRequests.has(requestKey)) {
+      return ongoingRequests.get(requestKey) as Promise<T>;
+    }
+    
     try {
       // Try to get from cache first
       const cachedData = getFromCache<T>(key)
@@ -36,16 +46,29 @@ export function createCachedApiCall<T>(
     }
 
     // If no cache or expired, call the API
-    const data = await apiFunction(...args)
-
-    // Save to cache
-    try {
-      saveToCache(key, data, expiry)
-    } catch (error) {
-      console.error('Error saving to cache:', error)
-    }
-
-    return data
+    const requestPromise = apiFunction(...args)
+      .then(data => {
+        // Save to cache
+        try {
+          saveToCache(key, data, expiry)
+        } catch (error) {
+          console.error('Error saving to cache:', error)
+        }
+        
+        // Remove from ongoing requests
+        ongoingRequests.delete(requestKey);
+        return data;
+      })
+      .catch(error => {
+        // Remove from ongoing requests on error too
+        ongoingRequests.delete(requestKey);
+        throw error;
+      });
+    
+    // Store the promise in ongoing requests
+    ongoingRequests.set(requestKey, requestPromise);
+    
+    return requestPromise;
   }
 }
 

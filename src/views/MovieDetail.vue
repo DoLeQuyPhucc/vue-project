@@ -147,7 +147,11 @@ const movieStatus = computed(() => {
 // Chuyển hướng đến trang xem phim
 const navigateToWatch = () => {
   if (movieData.value) {
-    router.push(`/xem-phim/${movieData.value.slug}`)
+    // Use push instead of continuously navigating
+    router.push({
+      name: 'movie-watch',
+      params: { slug: movieData.value.slug }
+    })
   }
 }
 
