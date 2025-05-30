@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col md:flex-row">
     <!-- Left column: Title and View All link (15%) -->
-    <div class="p-4 md:p-8 flex flex-col md:w-[20%]">
+    <div class="p-4 mt-15 md:p-8 flex flex-col md:w-[20%]">
       <div>
         <h3 class="text-xl md:text-[2.2rem] font-bold mb-2 leading-tight">
           <span :class="getTitleColor(countrySlug)">{{ getFirstPart(countrySlug) }}</span>
