@@ -54,9 +54,12 @@
         <button
           v-if="totalPages > 0"
           @click="scroll(-1)"
-          class="absolute top-1/2 left-2 z-10 transform -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none transition-opacity"
+          class="absolute top-1/2 left-2 z-10 transform -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none transition-opacity cursor-pointer"
           :disabled="carouselPage <= 0"
-          :class="{ 'opacity-30 cursor-not-allowed': carouselPage <= 0, 'opacity-80 hover:opacity-100': carouselPage > 0 }"
+          :class="{
+            'opacity-30 cursor-not-allowed': carouselPage <= 0,
+            'opacity-80 hover:opacity-100': carouselPage > 0,
+          }"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -75,9 +78,12 @@
         <button
           v-if="totalPages > 0"
           @click="scroll(1)"
-          class="absolute top-1/2 right-2 z-10 transform -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none transition-opacity"
+          class="absolute top-1/2 right-2 z-10 transform -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none transition-opacity cursor-pointer"
           :disabled="carouselPage >= totalPages"
-          :class="{ 'opacity-30 cursor-not-allowed': carouselPage >= totalPages, 'opacity-80 hover:opacity-100': carouselPage < totalPages }"
+          :class="{
+            'opacity-30 cursor-not-allowed': carouselPage >= totalPages,
+            'opacity-80 hover:opacity-100': carouselPage < totalPages,
+          }"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -100,11 +106,7 @@
 
         <!-- Movie carousel -->
         <div class="overflow-hidden w-full">
-          <transition-group 
-            name="carousel" 
-            tag="div"
-            class="flex gap-4 py-2 w-full"
-          >
+          <transition-group name="carousel" tag="div" class="flex gap-4 py-2 w-full">
             <router-link
               v-for="(movie, index) in displayedMovies"
               :key="movie._id"
@@ -151,10 +153,10 @@
 
         <!-- Page indicators -->
         <div v-if="totalPages > 0" class="flex justify-center mt-3 gap-1.5">
-          <div 
-            v-for="page in totalPages + 1" 
-            :key="page" 
-            class="w-2 h-2 rounded-full cursor-pointer transition-all" 
+          <div
+            v-for="page in totalPages + 1"
+            :key="page"
+            class="w-2 h-2 rounded-full cursor-pointer transition-all"
             :class="carouselPage === page - 1 ? 'bg-white' : 'bg-zinc-600 hover:bg-zinc-400'"
             @click="carouselPage = page - 1"
           ></div>
@@ -256,8 +258,8 @@ function scroll(direction: number) {
 watch(
   () => props.countrySlug,
   () => {
-    carouselPage.value = 0; // Reset to the first page
-    fetchMovies();
+    carouselPage.value = 0 // Reset to the first page
+    fetchMovies()
   },
 )
 

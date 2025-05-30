@@ -11,8 +11,8 @@
       </router-link>
 
       <!-- Mobile menu toggle button -->
-      <button 
-        @click="mobileMenuOpen = !mobileMenuOpen" 
+      <button
+        @click="mobileMenuOpen = !mobileMenuOpen"
         class="md:hidden flex items-center justify-center w-10 h-10 text-white hover:text-red-500"
       >
         <font-awesome-icon :icon="mobileMenuOpen ? 'times' : 'bars'" />
@@ -47,9 +47,13 @@
     </div>
 
     <!-- Navigation links -->
-    <div 
+    <div
       class="w-full md:flex-1 flex flex-col md:flex-row md:items-center md:space-x-6 space-y-3 md:space-y-0 overflow-hidden transition-all duration-300"
-      :class="mobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 md:max-h-screen opacity-0 md:opacity-100'"
+      :class="
+        mobileMenuOpen
+          ? 'max-h-screen opacity-100'
+          : 'max-h-0 md:max-h-screen opacity-0 md:opacity-100'
+      "
     >
       <router-link to="/" class="text-white hover:text-red-500 font-medium">Chủ Đề</router-link>
 
@@ -106,7 +110,7 @@
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, onUnmounted } from 'vue'
-import logoImage from '@/assets/logoBase.jpg'
+import logoImage from '@/assets/logo.png'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'

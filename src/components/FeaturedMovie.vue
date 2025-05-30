@@ -76,7 +76,7 @@
                 <!-- Navigation arrows -->
                 <button
                   @click="prevSlide"
-                  class="absolute -left-2 top-1/2 z-10 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none"
+                  class="absolute -left-2 top-1/2 z-10 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none cursor-pointer"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -122,7 +122,7 @@
 
                 <button
                   @click="nextSlide"
-                  class="absolute -right-2 top-1/2 z-10 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none"
+                  class="absolute -right-2 top-1/2 z-10 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 focus:outline-none cursor-pointer"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
