@@ -137,10 +137,10 @@
         </div>
       </div>
 
-      <router-link to="danh-sach/phim-le" class="text-white hover:text-red-500 font-medium"
+      <router-link to="/danh-sach/phim-le" class="text-white hover:text-red-500 font-medium"
         >Phim Lẻ</router-link
       >
-      <router-link to="danh-sach/phim-bo" class="text-white hover:text-red-500 font-medium"
+      <router-link to="/danh-sach/phim-bo" class="text-white hover:text-red-500 font-medium"
         >Phim Bộ</router-link
       >
 

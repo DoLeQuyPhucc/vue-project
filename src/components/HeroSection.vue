@@ -100,24 +100,56 @@
                   >
                     {{ movie.content }}
                   </p>
-                  <div class="flex gap-2 md:gap-3 mt-3 md:mt-6">
+                  <div class="flex gap-3 md:gap-4 mt-4 md:mt-6">
+                    <!-- Play Button - Primary CTA -->
                     <router-link
                       :to="`/xem-phim/${movie.slug}`"
-                      class="bg-[#4caf50] hover:bg-[#45a049] text-white flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full transition-colors"
+                      class="group relative bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
                     >
-                      <font-awesome-icon :icon="['fas', 'play']" class="text-sm md:text-lg" />
-                    </router-link>
-                    <div class="flex overflow-hidden rounded-full bg-white/20">
-                      <button
-                        class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-white hover:bg-white/30 transition-colors border-r border-white/30"
+                      <div
+                        class="flex items-center justify-center w-6 h-6 md:w-7 md:h-7 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors"
                       >
-                        <font-awesome-icon :icon="['fas', 'heart']" class="text-sm md:text-lg" />
+                        <font-awesome-icon
+                          :icon="['fas', 'play']"
+                          class="text-xs md:text-sm ml-0.5"
+                        />
+                      </div>
+                      <span class="font-semibold text-sm md:text-base">Xem ngay</span>
+                    </router-link>
+
+                    <!-- Secondary Actions -->
+                    <div class="flex gap-2">
+                      <!-- Favorite Button -->
+                      <button
+                        class="group relative bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 text-white flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                      >
+                        <font-awesome-icon
+                          :icon="['fas', 'heart']"
+                          class="text-sm md:text-base group-hover:text-red-400 transition-colors"
+                        />
+                        <!-- Tooltip -->
+                        <div
+                          class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap"
+                        >
+                          Yêu thích
+                        </div>
                       </button>
+
+                      <!-- Info Button -->
                       <router-link
                         :to="`/phim/${movie.slug}`"
-                        class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-white hover:bg-white/30 transition-colors"
+                        class="group relative bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 text-white flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                       >
-                        <font-awesome-icon :icon="['fas', 'info']" class="text-sm md:text-lg" />
+                        <font-awesome-icon
+                          :icon="['fas', 'info']"
+                          class="text-sm md:text-base group-hover:text-blue-400 transition-colors"
+                        />
+                        <!-- Tooltip -->
+                        <div
+                          class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap"
+                        >
+                          Chi tiết
+                        </div>
                       </router-link>
                     </div>
                   </div>
@@ -141,7 +173,12 @@
           ]"
           @click="currentIndex = index"
         >
-          <img :src="movie.thumb_url" :alt="movie.name" class="w-full h-full object-cover" loading="lazy" />
+          <img
+            :src="movie.thumb_url"
+            :alt="movie.name"
+            class="w-full h-full object-cover"
+            loading="lazy"
+          />
         </div>
       </div>
 
@@ -218,7 +255,7 @@ export default {
         const response = await getLatestMovies()
         this.movies = response.items
         this.loading = false
-        
+
         // After component is mounted, refresh the cache in background
         this.$nextTick(() => {
           this.refreshDataInBackground()
@@ -229,7 +266,7 @@ export default {
         console.error(error)
       }
     },
-    
+
     async refreshDataInBackground() {
       // This will update the cache without affecting the current UI
       // unless the data has changed
@@ -243,7 +280,7 @@ export default {
         console.error('Background refresh failed:', error)
       }
     },
-    
+
     prevSlide() {
       this.currentIndex =
         (this.currentIndex - 1 + this.displayedMovies.length) % this.displayedMovies.length
@@ -276,7 +313,8 @@ export default {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

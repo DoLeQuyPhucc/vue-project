@@ -52,33 +52,13 @@
             class="carousel-slide"
             :style="{ transform: `translateX(${-currentIndex * (220 + 16)}px)` }"
           >
-            <div
-              v-for="(movie, index) in movies"
+            <MovieCard
+              v-for="movie in movies"
               :key="movie._id"
-              class="carousel-item transition-all duration-300 transform hover:scale-105"
-            >
-              <router-link :to="`/phim/${movie.slug}`">
-                <div class="poster-container rounded-lg overflow-hidden shadow-lg relative group">
-                  <img
-                    :src="`${cdnUrl}/${movie.poster_url || movie.thumb_url}`"
-                    :alt="movie.name"
-                    class="w-full h-full object-cover"
-                  />
-                  <div
-                    class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3"
-                  >
-                    <div
-                      class="badge bg-blue-600 inline-block px-2 py-1 text-xs text-white rounded mb-2 w-max"
-                    >
-                      {{ movie.quality }}
-                    </div>
-                    <div class="text-white font-semibold truncate">{{ movie.name }}</div>
-                    <div class="text-gray-300 text-sm truncate">{{ movie.origin_name }}</div>
-                    <div class="text-gray-400 text-sm mt-1">{{ movie.episode_current }}</div>
-                  </div>
-                </div>
-              </router-link>
-            </div>
+              :movie="movie"
+              :cdn-url="cdnUrl"
+              class="carousel-item"
+            />
           </div>
         </div>
 
@@ -107,6 +87,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { getFilmBo } from '../services/movieService'
+import MovieCard from './MovieCard.vue'
 
 interface Movie {
   _id: string
