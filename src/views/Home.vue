@@ -7,7 +7,6 @@ import FilmSeriesCarousel from '@/components/FilmSeriesCarousel.vue'
 import FilmMovieCarousel from '@/components/FilmMovieCarousel.vue'
 import LazyLoader from '@/components/LazyLoader.vue'
 import { ref, watch } from 'vue'
-import AppFooter from '@/components/AppFooter.vue'
 
 // Login and register modal state
 const showLoginModal = ref(false)
@@ -133,7 +132,7 @@ const switchToLogin = () => {
     :class="{ 'content-blurred': showLoginModal || showRegisterModal }"
   >
     <!-- Login Button -->
-    <button
+    <!-- <button
       @click="toggleLoginModal"
       class="fixed top-5 right-5 z-50 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2.5 rounded-full shadow-lg transition-all hover:shadow-red-500/30 hover:scale-105 font-medium flex items-center gap-2"
     >
@@ -154,7 +153,7 @@ const switchToLogin = () => {
         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
       </svg>
       Đăng Nhập
-    </button>
+    </button> -->
 
     <!-- Login Modal -->
     <div
@@ -594,8 +593,6 @@ const switchToLogin = () => {
             </LazyLoader>
           </div>
         </div>
-
-        <AppFooter />
       </div>
     </div>
   </main>

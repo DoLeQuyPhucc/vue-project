@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getMovieDetail, getLatestMovies } from '@/services/movieService'
 import type { MovieDetailResponse, MovieDetail, Movie } from '@/services/movieService'
+import Loading from '@/components/Loading.vue'
 
 interface Episode {
   name: string
@@ -62,8 +63,9 @@ const fetchRecommendedMovies = async () => {
     const response = await getLatestMovies(randomPage)
     if (response.status) {
       // Filter out current movie but don't limit the number of movies
-      recommendedMovies.value = response.items
-        .filter((movie) => !movieData.value || movie.slug !== movieData.value.slug)
+      recommendedMovies.value = response.items.filter(
+        (movie) => !movieData.value || movie.slug !== movieData.value.slug,
+      )
     }
   } catch (err) {
     console.error('Error fetching recommended movies:', err)
@@ -150,7 +152,7 @@ const navigateToWatch = () => {
     // Use push instead of continuously navigating
     router.push({
       name: 'movie-watch',
-      params: { slug: movieData.value.slug }
+      params: { slug: movieData.value.slug },
     })
   }
 }
@@ -179,11 +181,8 @@ watch(
 <template>
   <div class="movie-detail-page bg-zinc-900 text-white min-h-screen">
     <!-- Loading state -->
-    <div v-if="isLoading" class="flex justify-center items-center py-20">
-      <div class="loader">
-        <div class="film-reel"></div>
-        <p class="mt-4 text-gray-400">Đang tải phim...</p>
-      </div>
+    <div v-if="isLoading" class="flex justify-center items-center min-h-screen">
+      <Loading :is-loading="true" :inline="true" />
     </div>
 
     <!-- Error state -->
@@ -648,12 +647,31 @@ watch(
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <!-- Vietsub Server -->
-                  <div v-if="episodes.some(server => server.server_name.toLowerCase().includes('vietsub'))" 
-                       class="bg-zinc-800/70 border border-zinc-700 rounded-lg p-4 transition-all hover:border-red-500/40 hover:shadow-md hover:shadow-red-500/10">
+                  <div
+                    v-if="
+                      episodes.some((server) =>
+                        server.server_name.toLowerCase().includes('vietsub'),
+                      )
+                    "
+                    class="bg-zinc-800/70 border border-zinc-700 rounded-lg p-4 transition-all hover:border-red-500/40 hover:shadow-md hover:shadow-red-500/10"
+                  >
                     <div class="flex items-center mb-3">
-                      <div class="bg-gradient-to-r from-blue-600 to-blue-500 w-10 h-10 rounded-full flex items-center justify-center mr-3 shadow-lg shadow-blue-500/20">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                      <div
+                        class="bg-gradient-to-r from-blue-600 to-blue-500 w-10 h-10 rounded-full flex items-center justify-center mr-3 shadow-lg shadow-blue-500/20"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                          />
                         </svg>
                       </div>
                       <div>
@@ -669,12 +687,33 @@ watch(
                   </div>
 
                   <!-- Thuyết Minh Server -->
-                  <div v-if="episodes.some(server => server.server_name.toLowerCase().includes('thuyết minh') || server.server_name.toLowerCase().includes('thuyet minh'))" 
-                       class="bg-zinc-800/70 border border-zinc-700 rounded-lg p-4 transition-all hover:border-red-500/40 hover:shadow-md hover:shadow-red-500/10">
+                  <div
+                    v-if="
+                      episodes.some(
+                        (server) =>
+                          server.server_name.toLowerCase().includes('thuyết minh') ||
+                          server.server_name.toLowerCase().includes('thuyet minh'),
+                      )
+                    "
+                    class="bg-zinc-800/70 border border-zinc-700 rounded-lg p-4 transition-all hover:border-red-500/40 hover:shadow-md hover:shadow-red-500/10"
+                  >
                     <div class="flex items-center mb-3">
-                      <div class="bg-gradient-to-r from-purple-600 to-purple-500 w-10 h-10 rounded-full flex items-center justify-center mr-3 shadow-lg shadow-purple-500/20">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                      <div
+                        class="bg-gradient-to-r from-purple-600 to-purple-500 w-10 h-10 rounded-full flex items-center justify-center mr-3 shadow-lg shadow-purple-500/20"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                          />
                         </svg>
                       </div>
                       <div>
@@ -683,9 +722,7 @@ watch(
                       </div>
                     </div>
                     <div class="pl-2 border-l-2 border-purple-500">
-                      <p class="text-gray-300 text-sm">
-                        Phiên bản lồng tiếng Việt chất lượng cao
-                      </p>
+                      <p class="text-gray-300 text-sm">Phiên bản lồng tiếng Việt chất lượng cao</p>
                     </div>
                   </div>
                 </div>
@@ -1033,9 +1070,7 @@ watch(
 
               <!-- Loading state -->
               <div v-if="isLoadingRecommended" class="flex justify-center py-8">
-                <div class="loader-small">
-                  <div class="film-reel-small"></div>
-                </div>
+                <Loading :is-loading="true" :inline="true" />
               </div>
 
               <!-- Movies grid -->
@@ -1162,55 +1197,6 @@ watch(
 
 .tab-navigation::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
-}
-
-/* Enhanced loader animation */
-.loader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.film-reel {
-  width: 70px;
-  height: 70px;
-  border: 4px solid rgba(220, 38, 38, 0.1);
-  border-radius: 50%;
-  border-top-color: #dc2626;
-  animation: spin 1s infinite cubic-bezier(0.6, 0.15, 0.4, 0.85);
-  position: relative;
-  background: linear-gradient(45deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-}
-
-.film-reel::before {
-  content: '';
-  position: absolute;
-  top: 7px;
-  left: 7px;
-  right: 7px;
-  bottom: 7px;
-  border-radius: 50%;
-  border: 2px dashed rgba(255, 255, 255, 0.3);
-  animation: spin 7s infinite linear reverse;
-}
-
-.film-reel::after {
-  content: '';
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  right: 20px;
-  bottom: 20px;
-  border-radius: 50%;
-  background-color: rgba(220, 38, 38, 0.15);
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /* Subtle pulsing animation for buttons */
