@@ -10,7 +10,7 @@ interface CacheData<T> {
 }
 
 // Track ongoing requests to prevent duplicates
-const ongoingRequests = new Map<string, Promise<any>>();
+const ongoingRequests = new Map<string, Promise<any>>()
 
 /**
  * Creates a cached API request function
@@ -26,17 +26,24 @@ export function createCachedApiCall<T>(
   const { key, expiry = 10 * 60 * 1000 } = cacheConfig
 
   return async (...args: any[]): Promise<T> => {
-    const requestKey = `${key}_${JSON.stringify(args)}`;
-    
+    // Include args in both request key and cache key for proper separation
+    const argsString = args.length > 0 ? `_${JSON.stringify(args)}` : ''
+    const requestKey = `${key}${argsString}`
+    const cacheKey = `${key}${argsString}`
+
+    console.log('Cache key:', cacheKey) // Debug log
+
     // If there's already an ongoing request for this exact data, return that promise
     if (ongoingRequests.has(requestKey)) {
-      return ongoingRequests.get(requestKey) as Promise<T>;
+      console.log('Returning ongoing request for:', requestKey) // Debug log
+      return ongoingRequests.get(requestKey) as Promise<T>
     }
-    
+
     try {
       // Try to get from cache first
-      const cachedData = getFromCache<T>(key)
+      const cachedData = getFromCache<T>(cacheKey)
       if (cachedData) {
+        console.log('Returning cached data for:', cacheKey) // Debug log
         // If we have valid cached data, return it immediately
         return cachedData
       }
@@ -45,30 +52,32 @@ export function createCachedApiCall<T>(
       // Continue to API call if cache fails
     }
 
+    console.log('Making API call for:', cacheKey) // Debug log
     // If no cache or expired, call the API
     const requestPromise = apiFunction(...args)
-      .then(data => {
+      .then((data) => {
         // Save to cache
         try {
-          saveToCache(key, data, expiry)
+          saveToCache(cacheKey, data, expiry)
+          console.log('Saved to cache:', cacheKey) // Debug log
         } catch (error) {
           console.error('Error saving to cache:', error)
         }
-        
+
         // Remove from ongoing requests
-        ongoingRequests.delete(requestKey);
-        return data;
+        ongoingRequests.delete(requestKey)
+        return data
       })
-      .catch(error => {
+      .catch((error) => {
         // Remove from ongoing requests on error too
-        ongoingRequests.delete(requestKey);
-        throw error;
-      });
-    
+        ongoingRequests.delete(requestKey)
+        throw error
+      })
+
     // Store the promise in ongoing requests
-    ongoingRequests.set(requestKey, requestPromise);
-    
-    return requestPromise;
+    ongoingRequests.set(requestKey, requestPromise)
+
+    return requestPromise
   }
 }
 

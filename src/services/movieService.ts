@@ -99,6 +99,46 @@ export interface MovieDetailResponse {
   episodes: ServerData[]
 }
 
+export interface PaginatedMovieResponse {
+  status: string
+  msg: string
+  data: {
+    seoOnPage: {
+      og_type: string
+      titleHead: string
+      descriptionHead: string
+      og_image: string[]
+      og_url: string
+    }
+    breadCrumb: Array<{
+      name: string
+      slug?: string
+      isCurrent: boolean
+      position: number
+    }>
+    titlePage: string
+    items: Movie[]
+    params: {
+      type_slug: string
+      filterCategory: string[]
+      filterCountry: string[]
+      filterYear: string[]
+      filterType: string[]
+      sortField: string
+      sortType: string
+      pagination: {
+        totalItems: number
+        totalItemsPerPage: number
+        currentPage: number
+        totalPages: number
+      }
+    }
+    type_list: string
+    APP_DOMAIN_FRONTEND: string
+    APP_DOMAIN_CDN_IMAGE: string
+  }
+}
+
 // Base API functions (without caching)
 const fetchLatestMovies = async (page = 1): Promise<MovieResponse> => {
   const response = await axiosInstance.get(`/danh-sach/phim-moi-cap-nhat-v3?page=${page}`)
@@ -117,6 +157,21 @@ const fetchFilmBo = async () => {
 
 const fetchFilmLe = async () => {
   const response = await axiosInstance.get('v1/api/danh-sach/phim-le')
+  return response.data
+}
+
+// Base API functions for paginated lists
+const fetchFilmBoList = async (page = 1): Promise<PaginatedMovieResponse> => {
+  console.log('fetchFilmBoList API call with page:', page) // Debug log
+  const response = await axiosInstance.get(`/v1/api/danh-sach/phim-bo?page=${page}`)
+  console.log('fetchFilmBoList API response:', response.data) // Debug log
+  return response.data
+}
+
+const fetchFilmLeList = async (page = 1): Promise<PaginatedMovieResponse> => {
+  console.log('fetchFilmLeList API call with page:', page) // Debug log
+  const response = await axiosInstance.get(`/v1/api/danh-sach/phim-le?page=${page}`)
+  console.log('fetchFilmLeList API response:', response.data) // Debug log
   return response.data
 }
 
@@ -143,3 +198,20 @@ export const getFilmLe = createCachedApiCall(fetchFilmLe, {
   key: 'film_le',
   expiry: 15 * 60 * 1000, // 15 minutes cache
 })
+
+// Cached API functions for paginated lists
+export const getFilmBoList = createCachedApiCall(
+  (page: number = 1) => {
+    console.log('getFilmBoList called with page:', page) // Debug log
+    return fetchFilmBoList(page)
+  },
+  { key: 'filmBoList', expiry: 10 * 60 * 1000 },
+)
+
+export const getFilmLeList = createCachedApiCall(
+  (page: number = 1) => {
+    console.log('getFilmLeList called with page:', page) // Debug log
+    return fetchFilmLeList(page)
+  },
+  { key: 'filmLeList', expiry: 10 * 60 * 1000 },
+)

@@ -24,6 +24,16 @@ const routes = [
         component: () => import('@/views/MovieWatch.vue'),
       },
       {
+        path: 'danh-sach/phim-bo',
+        name: 'film-bo-list',
+        component: () => import('@/views/FilmBoList.vue'),
+      },
+      {
+        path: 'danh-sach/phim-le',
+        name: 'film-le-list',
+        component: () => import('@/views/FilmLeList.vue'),
+      },
+      {
         path: 'watchlist',
         name: 'watchlist',
         component: () => import('@/views/Watchlist.vue'),
@@ -31,7 +41,7 @@ const routes = [
       },
     ],
   },
-  
+
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
@@ -47,7 +57,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   // Always set document title to LoPhim regardless of route
   document.title = 'LoPhim'
-  
+
   const auth = useAuthStore()
   if (to.meta.requiresAuth && !auth.isLoggedIn) {
     toggleLoginModal()
@@ -59,4 +69,3 @@ export default router
 function toggleLoginModal() {
   throw new Error('Function not implemented.')
 }
-
